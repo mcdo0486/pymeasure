@@ -37,12 +37,16 @@ log.addHandler(logging.NullHandler())
 
 
 class ResultsDialog(QtGui.QFileDialog):
-    def __init__(self, columns, x_axis=None, y_axis=None, parent=None):
+    def __init__(self, columns, x_axis=None, y_axis=None, parent=None, setup=True):
         super().__init__(parent)
         self.columns = columns
         self.x_axis, self.y_axis = x_axis, y_axis
         self.setOption(QtGui.QFileDialog.DontUseNativeDialog, True)
-        self._setup_ui()
+        self.plot_widget = PlotWidget("Results", self.columns,
+                                      self.x_axis, self.y_axis, parent=self)
+        self.plot = self.plot_widget.plot
+        if setup:
+            self._setup_ui()
 
     def _setup_ui(self):
         preview_tab = QtGui.QTabWidget()
@@ -51,9 +55,6 @@ class ResultsDialog(QtGui.QFileDialog):
         vbox_widget = QtGui.QWidget()
         param_vbox_widget = QtGui.QWidget()
 
-        self.plot_widget = PlotWidget("Results", self.columns,
-                                      self.x_axis, self.y_axis, parent=self)
-        self.plot = self.plot_widget.plot
         self.preview_param = QtGui.QTreeWidget()
         param_header = QtGui.QTreeWidgetItem(["Name", "Value"])
         self.preview_param.setHeaderItem(param_header)
