@@ -36,19 +36,20 @@ from ..Qt import QtGui
 from ..manager import Experiment
 from ...experiment import Results
 
-
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
 class MultiPlotWindow(ManagedWindowBase):
 
-    def __init__(self, procedure_class, x_axis=None, y_axis=None, linewidth=1, num_plots=1, **kwargs):
+    def __init__(self, procedure_class, x_axis=None, y_axis=None, linewidth=1, num_plots=1,
+                 **kwargs):
         self.x_axis = x_axis
         self.y_axis = y_axis
         self.num_plots = num_plots
         self.log_widget = LogWidget("Experiment Log")
-        self.plot_widget = MultiPlotWidget("Results Graph", procedure_class.DATA_COLUMNS, x_axis, y_axis,
+        self.plot_widget = MultiPlotWidget("Results Graph", procedure_class.DATA_COLUMNS, x_axis,
+                                           y_axis,
                                            num_plots=num_plots, linewidth=linewidth)
         self.plot_widget.setMinimumSize(100, 200)
 
@@ -66,7 +67,6 @@ class MultiPlotWindow(ManagedWindowBase):
         log.info("MultiPlotWindow connected to logging")
 
     def open_experiment(self):
-        print('num', self.num_plots)
         dialog = MultiPlotResultsDialog(self.procedure_class.DATA_COLUMNS, self.x_axis, self.y_axis,
                                         num_plots=self.num_plots)
         if dialog.exec_():
