@@ -186,13 +186,13 @@ class MultiPlotResultsDialog(ResultsDialog):
             except Exception as e:
                 raise e
             for i in range(self.num_plots):
+                # The pyqtgraph pen width was changed to 1 (originally: 1.75) to
+                # circumvent plotting slowdown. Once the issue
+                # (https://github.com/pyqtgraph/pyqtgraph/issues/533) is resolved
+                # it can be reverted
                 curve = ResultsCurve(results,
                                      x=self.plot_widget.plot_frame[i].x_axis,
                                      y=self.plot_widget.plot_frame[i].y_axis,
-                                     # The pyqtgraph pen width was changed to 1 (originally: 1.75) to
-                                     # circumvent plotting slowdown. Once the issue
-                                     # (https://github.com/pyqtgraph/pyqtgraph/issues/533) is resolved
-                                     # it can be reverted
                                      pen=pg.mkPen(color=(255, 0, 0), width=1),
                                      antialias=True
                                      )
