@@ -24,26 +24,14 @@
 
 import logging
 
-from pyqtgraph.Qt import QtCore, QtGui
 from pyqtgraph.dockarea import Dock, DockArea
-from PyQt5.QtCore import QFile, QTextStream
 
 from .managed_window import ManagedWindowBase
-from ..browser import BrowserItem
-from ..manager import Manager, Experiment
 from ..Qt import QtCore, QtGui
 from ..widgets import (
     PlotWidget,
-    BrowserWidget,
-    InputsWidget,
-    LogWidget,
-    ResultsDialog,
-    SequencerWidget,
-    DirectoryLineEdit,
-    EstimatorWidget,
+    LogWidget
 )
-from .multiplot_window import MultiPlotWindow
-from ...experiment import Results, Procedure
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -62,30 +50,91 @@ class DockWindow(ManagedWindowBase):
         self.num_plots = num_plots
 
         self.log_widget = LogWidget("Experiment Log")
+        self.widget_list = []
+
+        super().__init__(
+            procedure_class=procedure_class,
+            setup=False,
+            widget_list=self.widget_list,
+            *args,
+            **kwargs
+        )
+
+        self._setup_ui()
+        self._layout()
+        self.browser_widget.browser.measured_quantities = [self.x_axis, self.y_axis]
+
+    def _layout(self):
+        self.main = QtGui.QWidget(self)
+
+        inputs_dock = QtGui.QWidget(self)
+        inputs_vbox = QtGui.QVBoxLayout(self.main)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.setSpacing(10)
+        hbox.setContentsMargins(-1, 6, -1, 6)
+        hbox.addWidget(self.queue_button)
+        hbox.addWidget(self.abort_button)
+        hbox.addStretch()
+
+        if self.directory_input:
+            vbox = QtGui.QVBoxLayout()
+            vbox.addWidget(self.directory_label)
+            vbox.addWidget(self.directory_line)
+            vbox.addLayout(hbox)
+
+        if self.inputs_in_scrollarea:
+            inputs_scroll = QtGui.QScrollArea()
+            inputs_scroll.setWidgetResizable(True)
+            inputs_scroll.setFrameStyle(QtGui.QScrollArea.NoFrame)
+
+            self.inputs.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
+            inputs_scroll.setWidget(self.inputs)
+            inputs_vbox.addWidget(inputs_scroll, 1)
+
+        else:
+            inputs_vbox.addWidget(self.inputs)
+
+        if self.directory_input:
+            inputs_vbox.addLayout(vbox)
+        else:
+            inputs_vbox.addLayout(hbox)
+
+        inputs_vbox.addStretch(0)
+        inputs_dock.setLayout(inputs_vbox)
+
+        dock = QtGui.QDockWidget('Input Parameters')
+        dock.setWidget(inputs_dock)
+        dock.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)
+
+        if self.use_sequencer:
+            sequencer_dock = QtGui.QDockWidget('Sequencer')
+            sequencer_dock.setWidget(self.sequencer)
+            sequencer_dock.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
+            self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, sequencer_dock)
+
+        if self.use_estimator:
+            estimator_dock = QtGui.QDockWidget('Estimator')
+            estimator_dock.setWidget(self.estimator)
+            estimator_dock.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
+            self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, estimator_dock)
+
+        self.tabs = QtGui.QTabWidget(self.main)
 
         self.dock_area = DockArea()
         self.dock_area.name = 'Dock Tab'
         self.docks = []
 
-        self.plot_widgets = []
-
-        if "widget_list" not in kwargs:
-            kwargs["widget_list"] = ()
-        kwargs["widget_list"] = kwargs["widget_list"] + (self.dock_area, self.log_widget)
-
-        super().__init__(
-            procedure_class=procedure_class,
-            setup=False,
-            *args,
-            **kwargs
-        )
+        self.tabs.addTab(self.dock_area, self.dock_area.name)
 
         for i in range(self.num_plots):
-            self.plot_widgets.append(
-                PlotWidget("Results Graph", procedure_class.DATA_COLUMNS, self.x_axis, self.y_axis))
-            dock = Dock("Dock", closable=False, size=(200, 50))
+            self.widget_list.append(
+                PlotWidget("Results Graph", self.procedure_class.DATA_COLUMNS, self.x_axis,
+                           self.y_axis))
+            dock = Dock("Dock " + str(i + 1), closable=False, size=(200, 50))
             self.dock_area.addDock(dock)
-            dock.addWidget(self.plot_widgets[i])
+            dock.addWidget(self.widget_list[i])
             dock.nStyle = """
                           Dock > QWidget {
                               border: 1px solid #ff6600;
@@ -99,6 +148,17 @@ class DockWindow(ManagedWindowBase):
             dock.updateStyle()
             self.docks.append(dock)
 
-        self._setup_ui()
-        self._layout()
-        self.browser_widget.browser.measured_quantities = [self.x_axis, self.y_axis]
+        self.tabs.addTab(self.log_widget, self.log_widget.name)
+
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter.addWidget(self.tabs)
+        splitter.addWidget(self.browser_widget)
+
+        vbox = QtGui.QVBoxLayout(self.main)
+        vbox.setSpacing(0)
+        vbox.addWidget(splitter)
+
+        self.main.setLayout(vbox)
+        self.setCentralWidget(self.main)
+        self.main.show()
+        self.resize(1000, 800)

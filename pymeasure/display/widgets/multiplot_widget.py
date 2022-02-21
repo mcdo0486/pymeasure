@@ -171,7 +171,8 @@ class MultiPlotResultsDialog(ResultsDialog):
         self.num_plots = num_plots
         super().__init__(columns, setup=False, *args)
         self.plot_widget = MultiPlotWidget("Results", self.columns,
-                                           self.x_axis, self.y_axis, num_plots=num_plots, parent=self)
+                                           self.x_axis, self.y_axis, num_plots=num_plots,
+                                           parent=self)
         self.plot = self.plot_widget.plot
         self._setup_ui()
 
