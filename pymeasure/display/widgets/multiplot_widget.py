@@ -24,6 +24,7 @@
 
 import logging
 
+import os
 import pyqtgraph as pg
 from functools import partial
 
@@ -32,6 +33,7 @@ from ..Qt import QtCore, QtGui
 from .plot_widget import PlotWidget
 from .plot_frame import PlotFrame
 from .results_dialog import ResultsDialog
+from ...experiment.results import Results
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -162,8 +164,39 @@ class MultiPlotWidget(PlotWidget):
 class MultiPlotResultsDialog(ResultsDialog):
 
     def __init__(self, columns, x_axis, y_axis, num_plots=1, *args, **kwargs):
+        self.num_plots = num_plots
         super().__init__(columns, setup=False, *args)
         self.plot_widget = MultiPlotWidget("Results", self.columns,
                                            self.x_axis, self.y_axis, num_plots=num_plots, parent=self)
         self.plot = self.plot_widget.plot
         self._setup_ui()
+
+    def update_plot(self, filename):
+        self.plot.clear()
+        if not os.path.isdir(filename) and filename != '':
+            try:
+                results = Results.load(str(filename))
+            except ValueError:
+                return
+            except Exception as e:
+                raise e
+            for i in range(self.num_plots):
+                curve = ResultsCurve(results,
+                                     x=self.plot_widget.plot_frame[i].x_axis,
+                                     y=self.plot_widget.plot_frame[i].y_axis,
+                                     # The pyqtgraph pen width was changed to 1 (originally: 1.75) to
+                                     # circumvent plotting slowdown. Once the issue
+                                     # (https://github.com/pyqtgraph/pyqtgraph/issues/533) is resolved
+                                     # it can be reverted
+                                     pen=pg.mkPen(color=(255, 0, 0), width=1),
+                                     antialias=True
+                                     )
+                curve.update_data()
+
+                self.plot_widget.plot_frame[i].plot.addItem(curve)
+
+            self.preview_param.clear()
+            for key, param in results.procedure.parameter_objects().items():
+                new_item = QtGui.QTreeWidgetItem([param.name, str(param)])
+                self.preview_param.addTopLevelItem(new_item)
+            self.preview_param.sortItems(0, QtCore.Qt.AscendingOrder)
