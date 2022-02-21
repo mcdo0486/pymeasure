@@ -66,7 +66,6 @@ class MultiPlotWindow(ManagedWindowBase):
         log.info("MultiPlotWindow connected to logging")
 
     def open_experiment(self):
-        print('num', self.num_plots)
         dialog = MultiPlotResultsDialog(self.procedure_class.DATA_COLUMNS, self.x_axis, self.y_axis,
                                         num_plots=self.num_plots)
         if dialog.exec_():

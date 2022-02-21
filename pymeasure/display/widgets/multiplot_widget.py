@@ -156,6 +156,10 @@ class MultiPlotWidget(PlotWidget):
         for i in range(self.num_plots):
             self.plot_frame[i].plot.removeItem(curve[i])
 
+    def clear(self):
+        for i in range(self.num_plots):
+            self.plot_frame[i].plot.clear()
+
     def set_color(self, curve, color):
         for i in range(self.num_plots):
             curve[i].setPen(pg.mkPen(color=color, width=2))
@@ -172,7 +176,7 @@ class MultiPlotResultsDialog(ResultsDialog):
         self._setup_ui()
 
     def update_plot(self, filename):
-        self.plot.clear()
+        self.plot_widget.clear()
         if not os.path.isdir(filename) and filename != '':
             try:
                 results = Results.load(str(filename))
