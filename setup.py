@@ -37,6 +37,7 @@ setup(
     description='Scientific measurement library for instruments, experiments, and live-plotting',
     long_description=open('README.rst').read() + "\n\n" + open('CHANGES.txt').read(),
     install_requires=[
+        "minimalmodbus == 2.0.1",
         "numpy >= 1.6.1",
         "pandas >= 0.14",
         "pyvisa >= 1.8",
