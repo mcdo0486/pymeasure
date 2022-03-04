@@ -32,7 +32,8 @@ class OmegaAdapter(Adapter):
     """ Adapter class for CS8DPT instrument using the minimalmodbus package to allow
     serial communication to instrument
 
-    :param port: String denoting the serial port name, for example ``/dev/ttyACM0`` (Linux), ``/dev/tty.usbserial`` (OS X) or ``COM3`` (Windows).
+    :param port: String denoting the serial port name, for example
+                ``/dev/ttyACM0`` (Linux), ``/dev/tty.usbserial`` (OS X) or ``COM3`` (Windows).
     :param address: Integer denoting the address of the device, default is 1
     :param kwargs: Any valid key-word argument for adapter class
     """
@@ -51,14 +52,15 @@ class OmegaAdapter(Adapter):
             if mode in self.commands[command]['read_write']:
                 return self.commands[command]
             else:
-                raise ValueError("Mode is not supported for command %s: %s".format(command, mode))
+                raise ValueError("Mode is not supported for command {}: {}".format(command, mode))
         else:
-            raise NameError("Command is not supported: %s".format(command))
+            raise NameError("Command is not supported: {}".format(command))
 
     def write(self, command_value):
         """ Writes a value to a register on the instrument
 
-        :param command_value: Semicolon delimited string in the format of "command:value" which is split, validated, then sent to instrument.
+        :param command_value: Semicolon delimited string in the format of "command:value" which
+                            is split, validated, then sent to instrument.
         """
         command = command_value.split(':')[0]
         value = command_value.split(':')[1]

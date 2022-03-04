@@ -893,7 +893,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_1_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1024,
         "register_hex": "0x0400"
@@ -977,7 +977,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_2_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1056,
         "register_hex": "0x0420"
@@ -1061,7 +1061,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_3_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1088,
         "register_hex": "0x0440"
@@ -1145,7 +1145,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_4_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1120,
         "register_hex": "0x0460"
@@ -1229,7 +1229,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_5_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1152,
         "register_hex": "0x0480"
@@ -1313,7 +1313,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_6_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1184,
         "register_hex": "0x04a0"
@@ -1397,7 +1397,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_7_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1216,
         "register_hex": "0x04c0"
@@ -1481,7 +1481,7 @@ OMEGA_COMMANDS = {
     },
     "OUTPUT_8_HW_TYPE": {
         "data_type": "R",
-        "description": "Enumerated Hardware Type - upper 4 bits provide the \u2018Instance\u2019 count",
+        "description": "Enumerated Hardware Type - upper 4 bits provide the 'Instance' count",
         "read_write": "R",
         "register": 1248,
         "register_hex": "0x04e0"
