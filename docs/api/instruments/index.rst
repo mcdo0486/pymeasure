@@ -41,6 +41,7 @@ Instruments by manufacturer:
    lakeshore/index
    newport/index
    ni/index
+   omega/index
    oxfordinstruments/index
    parker/index
    pendulum/index
