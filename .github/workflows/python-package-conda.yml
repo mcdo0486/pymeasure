@@ -32,7 +32,7 @@ jobs:
       - name: Install modbusminimal with pip
         run: |
           conda activate pymeasure
-          pip install minimalmodbus
+          pip install .
       - name: Conda info & list
         run: |
           conda info
