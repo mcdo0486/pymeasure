@@ -2,8 +2,7 @@ name: Pymeasure CI test
 on:
   push:
     branches:
-      - master
-      - develop
+      - pip_ci_test
   pull_request:
 
 jobs:
