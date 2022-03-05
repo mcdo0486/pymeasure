@@ -29,7 +29,7 @@ jobs:
           activate-environment: pymeasure
           auto-update-conda: true
           use-only-tar-bz2: true  # for caching to work properly
-      - name: Install modbusminimal with pip
+      - name: Install any packages missing in conda with pip
         run: |
           conda activate pymeasure
           pip install .
@@ -84,6 +84,10 @@ jobs:
           activate-environment: pymeasure
           auto-update-conda: true
           use-only-tar-bz2: true  # for caching to work properly
+      - name: Install any packages missing in conda with pip
+        run: |
+          conda activate pymeasure
+          pip install .
       - name: Conda info & list
         run: |
           conda info
