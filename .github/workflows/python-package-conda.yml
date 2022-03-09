@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - pip_ci_test
+      - master
   pull_request:
 
 jobs:
