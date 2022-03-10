@@ -2,6 +2,6 @@
 HP 4192A Impedance Analyzer
 ###########################
 
-.. autoclass:: pymeasure.instruments.hp.HP4192A
+.. autoclass:: pymeasure.instruments.hp.hp4192A.HP4192A
     :members:
     :show-inheritance:
