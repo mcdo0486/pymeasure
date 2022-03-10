@@ -89,15 +89,16 @@ class HP4192A(Instrument):
         """Returns a property for the class based on the supplied
         commands. This property may be set, but cannot be read from the instrument.
         This property returns the attribute of self.settings when queried for a setting
+
         :param set_command: A string command that writes the value
         :param docs: A docstring that will be included in the documentation
         :param attr: A string that is the name of the settings object attribute to be changed
         :param validator: A function that takes both a value and a group of valid values
-        and returns a valid value, while it otherwise raises an exception
+            and returns a valid value, while it otherwise raises an exception
         :param values: A list, tuple, range, or dictionary of valid values, that can be used
-        as to map values if :code:`map_values` is True.
+            as to map values if :code:`map_values` is True.
         :param set_process: A function that takes a value and allows processing
-        before value mapping, returning the processed value
+            before value mapping, returning the processed value
         """
 
         def fget(self):
@@ -120,6 +121,7 @@ class HP4192A(Instrument):
     def choices(mode):
         """ Convenience function to print out the choices for a mode.
         e.g. inst.choices(inst.ZY_RANGE)
+
         :param mode: mode to print out
         """
         modes = mode['modes']
@@ -129,6 +131,7 @@ class HP4192A(Instrument):
     data_ready = setting.__func__('D%s',
                                   """ Return 'Data Ready' status, this property can be set to True
                                     or False
+                                    
                                     +--------+----------------------+
                                     | Value  | Status               | 
                                     +--------+----------------------+
@@ -155,6 +158,7 @@ class HP4192A(Instrument):
     zy_range = setting.__func__('R%s',
                                 """ Return 'ZY RANGE' status, this property can be set
                                 to the 1 indexed array ZY RANGE.
+                                
                                 +--------+----------------------+
                                 | Value  | Status               | 
                                 +--------+----------------------+
@@ -195,6 +199,7 @@ class HP4192A(Instrument):
     data_format = setting.__func__('F%s',
                                    """ Return 'Output Data Format' status, this property can be set
                                    to 0 or 1
+                                   
                                    +--------+-------------------------------------+
                                    | Value  | Status                              | 
                                    +--------+-------------------------------------+
@@ -213,6 +218,7 @@ class HP4192A(Instrument):
     display_a = setting.__func__('A%s',
                                  """ Return 'Display A' status, this property can be set
                                  to the 1 indexed array DISPLAY_A.
+                                 
                                  +--------+----------------------+
                                  | Value  | Status               | 
                                  +--------+----------------------+
@@ -242,6 +248,7 @@ class HP4192A(Instrument):
     display_b = setting.__func__('B%s',
                                  """ Return 'Display B' status, this property can be set
                                  as a secondary function mode of A
+                                 
                                  +--------+--------+--------------+
                                  | Value  | A mode | Status       |
                                  +--------+--------+--------------+
@@ -347,6 +354,7 @@ class HP4192A(Instrument):
     circuit_mode = setting.__func__('C%s',
                                     """ Return 'CIRCUIT_MODE' status, this property can be set
                                     to the 1 indexed array CIRCUIT_MODE.
+                                    
                                     +--------+----------------------+
                                     | Value  | Status               | 
                                     +--------+----------------------+
@@ -364,6 +372,7 @@ class HP4192A(Instrument):
     trigger = setting.__func__('T%s',
                                """ Return 'TRIGGER' status, this property can be set
                                to the 1 indexed array TRIGGER.
+                               
                                +--------+----------------------+
                                | Value  | Status               | 
                                +--------+----------------------+
@@ -380,6 +389,7 @@ class HP4192A(Instrument):
                                  """ Return 'OSC level' status in volts, this property can be set
                                  as a float for OSC range.  Resolution is dependent
                                  on the set 'OSC level'
+                                 
                                  +------------+----------------------+
                                  | OSC level  | 0.005 V - 1.100 V    | 
                                  +------------+----------------------+
@@ -398,6 +408,7 @@ class HP4192A(Instrument):
                                       """ Return 'spot frequency' status in kilohertz, this property
                                       can be set as a float for OSC range
                                       Resolution is dependent on the set 'spot frequency'
+                                      
                                       +-----------------+-----------------------------+
                                       | Spot frequency  | 0.0005 kHz - 13000.0 kHz    | 
                                       +-----------------+-----------------------------+
@@ -418,6 +429,7 @@ class HP4192A(Instrument):
                                       values=[.0005, 13000.])
     sweep_mode = setting.__func__('W%s',
                                   """ Return 'Sweep Mode' status, this property can be set
+                                  
                                   +--------+----------------------+
                                   | Value  | Status               | 
                                   +--------+----------------------+
@@ -432,6 +444,7 @@ class HP4192A(Instrument):
                                        """ Return 'start frequency' status in kilohertz, this
                                        property can be set as a float for OSC range
                                        Resolution is dependent on the set 'start frequency'
+                                       
                                        +-----------------+-----------------------------+
                                        | Start frequency | 0.0005 kHz - 13000.0 kHz    | 
                                        +-----------------+-----------------------------+
@@ -452,8 +465,9 @@ class HP4192A(Instrument):
                                        values=[.0005, 13000.])
     end_frequency = setting.__func__('PF%sEN',
                                      """ Return 'end frequency' status in kilohertz, this property
-                                      can be set as a float for OSC range
+                                     can be set as a float for OSC range
                                      Resolution is dependent on the set 'end frequency'
+                                     
                                         +-----------------+-----------------------------+
                                         | End frequency   | 0.0005 kHz - 13000.0 kHz    | 
                                         +-----------------+-----------------------------+
@@ -474,8 +488,9 @@ class HP4192A(Instrument):
                                      values=[.0005, 13000.])
     step_frequency = setting.__func__('SF%sEN',
                                       """ Return 'step frequency' status in kilohertz, this property
-                                       can be set as a float for OSC range
+                                      can be set as a float for OSC range
                                       Resolution is dependent on the set 'step frequency'
+                                      
                                         +-----------------+-----------------------------+
                                         | Step frequency  | 0.0005 kHz - 13000.0 kHz    | 
                                         +-----------------+-----------------------------+
@@ -497,6 +512,7 @@ class HP4192A(Instrument):
     spot_bias = setting.__func__('BI%sEN',
                                  """ Return 'spot bias' status in kilohertz, this property can be
                                  set as a float in bias voltage range
+                                 
                                  +-----------------+-----------------------------+
                                  | Spot bias       | -35.0 V - +35.0 V           | 
                                  +-----------------+-----------------------------+
@@ -512,6 +528,7 @@ class HP4192A(Instrument):
     start_bias = setting.__func__('TB%sEN',
                                   """ Return 'start bias' status in kilohertz, this property can
                                   be set as a float in bias voltage range
+                                  
                                   +-----------------+-----------------------------+
                                   | Start bias      | -35.0 V - +35.0 V           | 
                                   +-----------------+-----------------------------+
@@ -527,6 +544,7 @@ class HP4192A(Instrument):
     end_bias = setting.__func__('PB%sEN',
                                 """ Return 'end bias' status in kilohertz, this property can be set
                                 as a float in bias voltage range
+                                
                                 +-----------------+-----------------------------+
                                 | End bias        | -35.0 V - +35.0 V           | 
                                 +-----------------+-----------------------------+
@@ -541,6 +559,7 @@ class HP4192A(Instrument):
                                 values=[-35.0, 35.0])
     log_sweep = setting.__func__('G%s',
                                  """ Return 'Log Sweep' status, this property can be set
+                                 
                                         +--------+----------------------+
                                         | Value  | Status               | 
                                         +--------+----------------------+
@@ -553,6 +572,7 @@ class HP4192A(Instrument):
                                  values=[0, 1])
     manual_sweep = setting.__func__('W%s',
                                     """ Return 'Manual Sweep' status, this property can be set
+                                    
                                         +--------+----------------------+
                                         | Value  | Status               | 
                                         +--------+----------------------+
@@ -565,6 +585,7 @@ class HP4192A(Instrument):
                                     values=[2, 4])
     dc_bias = setting.__func__('I%s',
                                """ Return 'dc_bias' status, this property can be set only to I0
+                               
                                        +--------+----------------------+
                                        | Value  | Status               | 
                                        +--------+----------------------+
@@ -576,6 +597,7 @@ class HP4192A(Instrument):
                                values=[0, ])
     zero_open = setting.__func__('ZO%s',
                                  """ Return 'Zero Open' status, this property can be set
+                                 
                                         +--------+----------------------+
                                         | Value  | Status               | 
                                         +--------+----------------------+
@@ -589,6 +611,7 @@ class HP4192A(Instrument):
                                  values=[0, 1])
     zero_short = setting.__func__('ZS%s',
                                   """ Return 'Zero Short' status, this property can be set
+                                  
                                         +--------+----------------------+
                                         | Value  | Status               | 
                                         +--------+----------------------+
@@ -602,6 +625,7 @@ class HP4192A(Instrument):
     test_level_monitor = setting.__func__('T%s',
                                           """ Return 'Test Level Monitor' status, this property
                                           can be set
+                                          
                                           +--------+----------------------+
                                           | Value  | Status               | 
                                           +--------+----------------------+
@@ -616,6 +640,7 @@ class HP4192A(Instrument):
                                           values=['V', 'A'])
     high_speed = setting.__func__('H%s',
                                   """ Return 'High Speed' status, this property can be set
+                                  
                                         +--------+----------------------+
                                         | Value  | Status               | 
                                         +--------+----------------------+
@@ -628,6 +653,7 @@ class HP4192A(Instrument):
                                   values=[0, 1])
     self_test = setting.__func__('S%s',
                                  """ Return 'Self Test' status, this property can be set only to 1
+                                 
                                         +--------+----------------------+
                                         | Value  | Status               |
                                         +--------+----------------------+
@@ -652,10 +678,10 @@ class HP4192A(Instrument):
     def interpret_output(self, output):
         """
         Intrepet the output string from the HP4192A, which includes
-        letter codes and measurement values
-        e.g. NZFN+02.817E+03
+        letter codes and measurement values e.g. NZFN+02.817E+03
+
         :param output: Output from HP4192A
-        :return: Tuple of (float(value), code)
+        :returns: Tuple of (value, code)
         """
         valid = re.match(r'([A-Z]+)([+-][0-9.]+)(E[+-][0-9.]+)*', output)
         if valid is not None and len(valid.groups()) > 1:
