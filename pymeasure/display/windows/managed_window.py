@@ -1,3 +1,16 @@
+#
+# This file is part of the PyMeasure package.
+#
+# Copyright (c) 2013-2022 PyMeasure Developers
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -47,7 +60,7 @@ class ManagedWindowBase(QtGui.QMainWindow):
 
     The ManagedWindowBase uses a Manager to control Workers in a Queue,
     and provides a simple interface.
-    The :meth:`~pymeasure.display.windows.ManagedWindowBase.queue` method must be
+    The :meth:`~pymeasure.display.windows.managed_window.ManagedWindowBase.queue` method must be
     overridden by the child class.
 
     The ManagedWindowBase allow user to define a set of widget that display information about the
@@ -56,17 +69,17 @@ class ManagedWindowBase(QtGui.QMainWindow):
     This class is not intended to be used directy, but it should be subclassed to provide some
     appropriate widget list. Example of classes usable as element of widget list are:
 
-    - :class:`~pymeasure.display.widgets.LogWidget`
-    - :class:`~pymeasure.display.widgets.PlotWidget`
-    - :class:`~pymeasure.display.widgets.ImageWidget`
+    - :class:`~pymeasure.display.widgets.log_widget.LogWidget`
+    - :class:`~pymeasure.display.widgets.plot_widget.PlotWidget`
+    - :class:`~pymeasure.display.widgets.image_widget.ImageWidget`
 
     Of course, users can define its own widget making sure that inherits from
-    :class:`~pymeasure.display.widgets.TabWidget`.
+    :class:`~pymeasure.display.widgets.tab_widget.TabWidget`.
 
     Examples of ready to use classes inherited from ManagedWindowBase are:
 
-    - :class:`~pymeasure.display.windows.ManagedWindow`
-    - :class:`~pymeasure.display.windows.ManagedImageWindow`
+    - :class:`~pymeasure.display.windows.managed_window.ManagedWindow`
+    - :class:`~pymeasure.display.windows.image_window.ManagedImageWindow`
 
     .. seealso::
 
@@ -459,8 +472,8 @@ class ManagedWindowBase(QtGui.QMainWindow):
         :class:`~pymeasure.experiment.procedure.Procedure` to be run.
 
         The optional `procedure` argument is not required for a basic implementation,
-        but is required when the :class:`~pymeasure.display.widgets.SequencerWidget`
-        is used.
+        but is required when the
+        :class:`~pymeasure.display.widgets.sequencer_widget.SequencerWidget` is used.
 
         For example:
 
@@ -538,7 +551,8 @@ class ManagedWindowBase(QtGui.QMainWindow):
 
 class ManagedWindow(ManagedWindowBase):
     """
-    Display experiment output with an :class:`~pymeasure.display.widget.PlotWidget` class.
+    Display experiment output with an
+    :class:`~pymeasure.display.widgets.plot_widget.PlotWidget` class.
 
     .. seealso::
 
@@ -551,7 +565,7 @@ class ManagedWindow(ManagedWindowBase):
     :param y_axis: the initial data-column for the y-axis of the plot
     :param linewidth: linewidth for the displayed curves, default is 1
     :param \\**kwargs: optional keyword arguments that will be passed to
-        :class:`~pymeasure.display.windows.ManagedWindowBase`
+        :class:`~pymeasure.display.windows.managed_window.ManagedWindowBase`
 
     """
 
