@@ -356,7 +356,7 @@ class KeysightDSO1052B(Instrument):
     )
 
     trigger_status = Instrument.control(
-        ":TRIGger:SENSitivity?", "",
+        ":TRIGger:STATus?", "",
         """ A query that returns the current trigger/acquisition status
         """
     )
@@ -394,8 +394,8 @@ class KeysightDSO1052B(Instrument):
         Only edge, pattern, pulse, video, no alt
         """
         mode = self.trigger_mode
-        if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
-            return self.ask(":TRIGger:" + mode + ":SWEep?")
+        if strict_discrete_set(mode.upper(), ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
+            return self.ask(":TRIGger:" + mode.upper() + ":SWEep?")
 
     @trigger_sweep.setter
     def trigger_sweep(self, sweep):
@@ -403,8 +403,8 @@ class KeysightDSO1052B(Instrument):
         Only edge, pattern, pulse, video, no alt
         """
         mode = self.trigger_mode
-        if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
-            self.write(":TRIGger:" + mode + ":SWEep " + sweep)
+        if strict_discrete_set(mode.upper(), ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
+            self.write(":TRIGger:" + mode.upper() + ":SWEep " + sweep)
 
     ###############
     # Acquisition #
