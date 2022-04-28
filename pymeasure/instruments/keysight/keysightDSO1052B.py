@@ -393,18 +393,18 @@ class KeysightDSO1052B(Instrument):
         """ Get trigger sweep for current mode
         Only edge, pattern, pulse, video, no alt
         """
-        mode = self.trigger_mode
-        if strict_discrete_set(mode.upper(), ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
-            return self.ask(":TRIGger:" + mode.upper() + ":SWEep?")
+        mode = self.trigger_mode.upper()
+        if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
+            return self.ask(":TRIGger:" + mode + ":SWEep?")
 
     @trigger_sweep.setter
     def trigger_sweep(self, sweep):
         """ Set trigger sweep for current mode
         Only edge, pattern, pulse, video, no alt
         """
-        mode = self.trigger_mode
-        if strict_discrete_set(mode.upper(), ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
-            self.write(":TRIGger:" + mode.upper() + ":SWEep " + sweep)
+        mode = self.trigger_mode.upper()
+        if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
+            self.write(":TRIGger:" + mode + ":SWEep " + sweep)
 
     ###############
     # Acquisition #
