@@ -356,7 +356,7 @@ class KeysightDSO1052B(Instrument):
     )
 
     trigger_status = Instrument.control(
-        ":TRIGger:SENSitivity?", "",
+        ":TRIGger:STATus?", "",
         """ A query that returns the current trigger/acquisition status
         """
     )
@@ -393,7 +393,7 @@ class KeysightDSO1052B(Instrument):
         """ Get trigger sweep for current mode
         Only edge, pattern, pulse, video, no alt
         """
-        mode = self.trigger_mode
+        mode = self.trigger_mode.upper()
         if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
             return self.ask(":TRIGger:" + mode + ":SWEep?")
 
@@ -402,7 +402,7 @@ class KeysightDSO1052B(Instrument):
         """ Set trigger sweep for current mode
         Only edge, pattern, pulse, video, no alt
         """
-        mode = self.trigger_mode
+        mode = self.trigger_mode.upper()
         if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
             self.write(":TRIGger:" + mode + ":SWEep " + sweep)
 
