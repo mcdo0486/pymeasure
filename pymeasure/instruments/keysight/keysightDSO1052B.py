@@ -386,7 +386,7 @@ class KeysightDSO1052B(Instrument):
     @trigger_level.setter
     def trigger_level(self, level):
         """ Set trigger source for current mode"""
-        self.write(":TRIGger:" + self.trigger_mode + ":LEVel " + level)
+        self.write(":TRIGger:" + self.trigger_mode + ":LEVel %f" % level)
 
     @property
     def trigger_sweep(self):
