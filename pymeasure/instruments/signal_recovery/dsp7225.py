@@ -61,7 +61,7 @@ class DSP7225(Instrument):
     IMODES = ['voltage mode', 'current mode', 'low noise current mode']
 
     CURVE_BITS = ['x', 'y', 'magnitude', 'phase', 'sensitivity', 'adc1',
-                  'adc2', 'adc3', 'dac1', 'dac2', 'noise', 'ratio', 'log ratio',
+                  'adc2', 'dac1', 'dac2', 'noise', 'ratio', 'log ratio',
                   'event', 'frequency part 1', 'frequency part 2',
                   # Dual modes
                   'x2', 'y2', 'magnitude2', 'phase2', 'sensitivity2']
@@ -88,7 +88,7 @@ class DSP7225(Instrument):
         """ A floating point property that represents the lock-in
         frequency in Hz. This property can be set. """,
         validator=truncated_range,
-        values=[0, 2.5e5]
+        values=[0, 1.2e5]
     )
     dac1 = Instrument.control(
         "DAC. 1", "DAC. 1 %g",
@@ -107,10 +107,10 @@ class DSP7225(Instrument):
     harmonic = Instrument.control(
         "REFN", "REFN %d",
         """ An integer property that represents the reference
-        harmonic mode control, taking values from 1 to 65535.
+        harmonic mode control, taking values from 1 to 32.
         This property can be set. """,
         validator=truncated_discrete_set,
-        values=list(range(65535))
+        values=list(range(32))
     )
     reference_phase = Instrument.control(
         "REFP.", "REFP. %g",
@@ -225,23 +225,6 @@ class DSP7225(Instrument):
         self.write("VMODE 1")
 
     @property
-    def adc3(self):
-        # 50,000 for 1V signal over 1 s
-        integral = self.values("ADC 3")[0]
-        return integral / (50000.0 * self.adc3_time)
-
-    @property
-    def adc3_time(self):
-        # Returns time in seconds
-        return self.values("ADC3TIME")[0] / 1000.0
-
-    @adc3_time.setter
-    def adc3_time(self, value):
-        # Takes time in seconds
-        self.write("ADC3TIME %g" % int(1000 * value))
-        sleep(value * 1.2)
-
-    @property
     def auto_gain(self):
         return (int(self.values("AUTOMATIC")) == 1)
 
@@ -269,9 +252,8 @@ class DSP7225(Instrument):
     curve_buffer_bits = Instrument.control(
         "CBD", "CBD %d",
         """ An integer property that controls which data outputs are stored
-        in the curve buffer. Valid values are values between 1 and 65,535 (or
-        2,097,151 in dual reference mode). """,
-        values=[1, 2097151],
+        in the curve buffer. Valid values are values between 1 and 65,535. """,
+        values=[1, 65535],
         validator=truncated_range,
         cast=int,
     )
@@ -335,7 +317,7 @@ class DSP7225(Instrument):
             List containing the quantities (strings) that are to be
             recorded in the curve buffer, can be any of:
             'x', 'y', 'magnitude', 'phase', 'sensitivity', 'adc1',
-            'adc2', 'adc3', 'dac1', 'dac2', 'noise', 'ratio', 'log ratio',
+            'adc2', 'dac1', 'dac2', 'noise', 'ratio', 'log ratio',
             'event', 'frequency' (or 'frequency part 1' and 'frequency part 2');
             for both dual modes, additional options are:
             'x2', 'y2', 'magnitude2', 'phase2', 'sensitivity2'.
@@ -553,10 +535,6 @@ class DSP7225(Instrument):
 
         # conversion for, adc1, adc2, dac1, dac2, ratio, and log ratio
         convert_if_present(["adc1", "adc2", "dac1", "dac2", "ratio", "log ratio"], 1 / 1000)
-
-        # adc3 (integrating converter); requires a call to adc3_time
-        if "adc3" in buffer_data:
-            data["adc3"] = buffer_data["adc3"] / (50000 * self.adc3_time)
 
         # event does not require a conversion
         convert_if_present(["event"])
