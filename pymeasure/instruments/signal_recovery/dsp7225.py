@@ -28,7 +28,7 @@ from time import sleep, time
 import numpy as np
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import truncated_discrete_set, truncated_range, \
+from pymeasure.instruments.validators import truncated_discrete_set, strict_discrete_range, \
     modular_range_bidirectional, strict_discrete_set
 
 log = logging.getLogger(__name__)
@@ -80,28 +80,28 @@ class DSP7225(Instrument):
         "OA.", "OA. %g",
         """ A floating point property that represents the voltage
         in Volts. This property can be set. """,
-        validator=truncated_range,
-        values=[0, 5]
+        validator=strict_discrete_range,
+        values=[0.001, 5]
     )
     frequency = Instrument.control(
         "OF.", "OF. %g",
         """ A floating point property that represents the lock-in
         frequency in Hz. This property can be set. """,
-        validator=truncated_range,
-        values=[0, 1.2e5]
+        validator=strict_discrete_range,
+        values=[0.001, 1.2e5]
     )
     dac1 = Instrument.control(
         "DAC. 1", "DAC. 1 %g",
         """ A floating point property that represents the output
         value on DAC1 in Volts. This property can be set. """,
-        validator=truncated_range,
+        validator=strict_discrete_range,
         values=[-12, 12]
     )
     dac2 = Instrument.control(
         "DAC. 2", "DAC. 2 %g",
         """ A floating point property that represents the output
         value on DAC2 in Volts. This property can be set. """,
-        validator=truncated_range,
+        validator=strict_discrete_range,
         values=[-12, 12]
     )
     harmonic = Instrument.control(
@@ -254,7 +254,7 @@ class DSP7225(Instrument):
         """ An integer property that controls which data outputs are stored
         in the curve buffer. Valid values are values between 1 and 65,535. """,
         values=[1, 65535],
-        validator=truncated_range,
+        validator=strict_discrete_range,
         cast=int,
     )
 
@@ -265,7 +265,7 @@ class DSP7225(Instrument):
         amount of points is determined by the amount of curves that are stored,
         as set via the curve_buffer_bits property (32,768 / n) """,
         values=[1, 32768],
-        validator=truncated_range,
+        validator=strict_discrete_range,
         cast=int,
     )
 
@@ -282,7 +282,7 @@ class DSP7225(Instrument):
         to set this up since it happens automatically when acquisition starts.
         """,
         values=[1, 1000000000],
-        validator=truncated_range,
+        validator=strict_discrete_range,
         cast=int,
     )
 
