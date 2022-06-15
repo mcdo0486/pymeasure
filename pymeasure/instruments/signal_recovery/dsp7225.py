@@ -35,8 +35,11 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class DSP7265(Instrument):
-    """This is the class for the DSP 7265 lockin amplifier"""
+class DSP7225(Instrument):
+    """
+    This is the class for the DSP 7225 lockin amplifier
+    Modified version of the DSP7265 driver with reduced functionality
+    """
 
     SENSITIVITIES = [
         np.nan, 2.0e-9, 5.0e-9, 10.0e-9, 20.0e-9, 50.0e-9, 100.0e-9,
@@ -392,7 +395,7 @@ class DSP7265(Instrument):
             If provided, names the quantity that is to be retrieved from the
             curve buffer; can be any of:
             'x', 'y', 'magnitude', 'phase', 'sensitivity', 'adc1', 'adc2',
-            'adc3', 'dac1', 'dac2', 'noise', 'ratio', 'log ratio', 'event',
+            'dac1', 'dac2', 'noise', 'ratio', 'log ratio', 'event',
             'frequency part 1' and 'frequency part 2';
             for both dual modes, additional options are:
             'x2', 'y2', 'magnitude2', 'phase2', 'sensitivity2'.
