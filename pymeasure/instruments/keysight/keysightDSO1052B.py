@@ -114,7 +114,7 @@ class Channel:
 
     coupling = Instrument.control(
         "COUPling?", "COUPling %s",
-        """ A string parameter that determines the coupling. 
+        """ A string parameter that determines the coupling.
         Values can be "ac" or "dc" or "gnd".
         """,
         validator=strict_discrete_set,
@@ -173,7 +173,7 @@ class Channel:
 
     units = Instrument.control(
         "UNITs?", "UNITs %d",
-        """ Sets the measurement units for the channel's connected probe. 
+        """ Sets the measurement units for the channel's connected probe.
         Values can be "volts", "amps", "watts", or "unknown".
         """,
         validator=strict_discrete_set,
@@ -275,7 +275,7 @@ class KeysightDSO1052B(Instrument):
 
     timebase_format = Instrument.control(
         ":TIMebase:FORMat?", ":TIMebase:FORMat %s",
-        """ A string parameter that sets the current time base format. Can be 
+        """ A string parameter that sets the current time base format. Can be
         "yt" (default), "xy", or "roll".""",
         validator=strict_discrete_set,
         values={"yt": "YT", "xy": "XY", "roll": "ROLL"},
@@ -296,7 +296,7 @@ class KeysightDSO1052B(Instrument):
 
     timebase_mode = Instrument.control(
         ":TIMebase:MODE?", ":TIMebase:MODE %s",
-        """ A string parameter that sets the current time base. Can be "main" (default) or 
+        """ A string parameter that sets the current time base. Can be "main" (default) or
         "delayed".""",
         validator=strict_discrete_set,
         values={"main": "MAIN", "delayed": "DELayed"},
@@ -627,7 +627,7 @@ class KeysightDSO1052B(Instrument):
         img = self.binary_values(query, header_bytes=10, dtype=np.uint8)
         return bytearray(img)
 
-    def download_data(self, source, waveform_mode = "normal", points=62500):
+    def download_data(self, source, waveform_mode="normal", points=62500):
         """ Get data from specified source of oscilloscope. Returned objects are a np.ndarray of
         data values (no temporal axis) and a dict of the waveform preamble, which can be used to
         build the corresponding time values for all data points.
