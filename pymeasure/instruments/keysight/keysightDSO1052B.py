@@ -33,27 +33,10 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-def trigger_process(value, values):
-    """ Provides a validator function that returns the value
-    if it is in the discrete set. Otherwise it raises a ValueError.
-
-    :param value: A value to test
-    :param values: A set of values that are valid
-    :raises: ValueError if the value is not in the set
-    """
-
-    if value in values:
-        return value
-    else:
-        raise ValueError('Value of {} is not in the discrete set {}'.format(
-            value, values
-        ))
-
-
 class Channel:
     """ Implementation of a Keysight DSO1052B Oscilloscope channel.
-
-    Implementation modeled on Channel object of Keysight DSOX1102G instrument. """
+    Implementation modeled on Channel object of Keysight DSOX1102G instrument.
+    """
 
     BOOLS = {True: 1, False: 0}
 
@@ -372,6 +355,7 @@ class KeysightDSO1052B(Instrument):
 
     @property
     def trigger_source(self):
+        """ Get trigger source for current mode"""
         return self.ask(":TRIGger:" + self.trigger_mode + ":SOURce?")
 
     @trigger_source.setter
@@ -381,17 +365,18 @@ class KeysightDSO1052B(Instrument):
 
     @property
     def trigger_level(self):
+        """ Get trigger level for current mode"""
         return self.ask(":TRIGger:" + self.trigger_mode + ":LEVel?")
 
     @trigger_level.setter
     def trigger_level(self, level):
-        """ Set trigger source for current mode"""
+        """ Set trigger level for current mode"""
         self.write(":TRIGger:" + self.trigger_mode + ":LEVel %f" % level)
 
     @property
     def trigger_sweep(self):
         """ Get trigger sweep for current mode
-        Only edge, pattern, pulse, video, no alt
+        Only "edge", "pattern", "pulse", or "video"
         """
         mode = self.trigger_mode.upper()
         if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
@@ -400,7 +385,7 @@ class KeysightDSO1052B(Instrument):
     @trigger_sweep.setter
     def trigger_sweep(self, sweep):
         """ Set trigger sweep for current mode
-        Only edge, pattern, pulse, video, no alt
+        Only "edge", "pattern", "pulse", or "video"
         """
         mode = self.trigger_mode.upper()
         if strict_discrete_set(mode, ["EDGE", "PULSE", "VIDEO", "PATTERN", ]):
@@ -474,7 +459,7 @@ class KeysightDSO1052B(Instrument):
         ":WAVeform:SOURce?", ":WAVeform:SOURce %s",
         """ A string parameter that selects the analog channel, function, or reference waveform
         to be used as the source for the waveform methods. Can be "channel1", "channel2",
-        and "math".""",
+        or "math".""",
         validator=strict_discrete_set,
         values={"channel1": "CHANnel1", "channel2": "CHANnel2", "math": "MATH", },
         map_values=True
@@ -491,8 +476,8 @@ class KeysightDSO1052B(Instrument):
 
     @property
     def waveform_preamble(self):
-        """
-        Reads waveform preamble and converts it to a more convenient dict of values:
+        """ Reads waveform preamble and converts it to a more convenient dict of values:
+
             - "format": byte, word, or ascii (str)
             - "type": normal, peak detect, or average (str)
             - "points": nb of data points transferred (int)
@@ -570,8 +555,8 @@ class KeysightDSO1052B(Instrument):
         self.write("*CLS")
 
     def factory_reset(self):
-        """ Factory default setup, no user settings remain unchanged.
-         Settings:
+        """ Factory default setup, no user settings remain unchanged. Factory settings:
+
          - acquisition_mode = 'normal'
          - ch1.display = True
          - ch1.offset = 0.0
@@ -634,7 +619,7 @@ class KeysightDSO1052B(Instrument):
 
         Multimeter will be stopped for proper acquisition.
 
-        :param source: measurement source, can be "channel1", "channel2", "math".
+        :param source: measurement source, can be "channel1", "channel2", or "math".
         :param waveform_mode: waveform_data data mode. Can be "normal", "maximum", or "raw"
         :param points: integer number of points to acquire.
 
