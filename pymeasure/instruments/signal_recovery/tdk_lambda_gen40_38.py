@@ -61,7 +61,7 @@ class Gen40_38(Instrument):
         "OF.", "OF. %g",
         """ A floating point property that represents the lock-in
         frequency in Hz. This property can be set. """,
-        validator=strict_discrete_range,
+        validator=lambda v, vs: strict_discrete_range(v,vs,.01),
         values=[0.001, 1.2e5]
     )
     dac1 = Instrument.control(
