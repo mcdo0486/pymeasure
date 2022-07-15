@@ -50,7 +50,7 @@ class Gen40_38(Instrument):
         )
         self.adapter.connection.read_termination = '\r'
         self.adapter.connection.write_termination = '\r'
-        self.address = address        
+        self.address = address
     
     
     def write(self, command):
@@ -126,7 +126,7 @@ class Gen40_38(Instrument):
     )
     
     voltage = Instrument.control(
-        'PV?','PV %d',
+        'PV?','PV %g',
         """ Sets the desired output voltage """,
         validator=lambda value, values: strict_discrete_range(value, values, step=.01),
         values=[0,40] 
@@ -138,7 +138,7 @@ class Gen40_38(Instrument):
     )
     
     current = Instrument.control(
-        'PC?','PC %d',
+        'PC?','PC %g',
         """ Sets the desired output current """,
         validator=lambda value, values: strict_discrete_range(value, values, step=.01),
         values=[0,38] 
@@ -199,7 +199,7 @@ class Gen40_38(Instrument):
     )
     
     foldback_delay = Instrument.control(
-        'FBD?','FBD %d',
+        'FBD?','FBD %g',
         """ Foldback delay that is multipled by 0.1 seconds
         """,
         validator=lambda value, values: strict_discrete_range(value, values, step=.01),
@@ -213,7 +213,7 @@ class Gen40_38(Instrument):
     )
     
     over_voltage = Instrument.control(
-        'OVP?','OVP %d',
+        'OVP?','OVP %g',
         """ Over voltage protection
         """,
         validator=lambda value, values: strict_discrete_range(value, values, step=.01),
@@ -227,7 +227,7 @@ class Gen40_38(Instrument):
     )
     
     under_voltage = Instrument.control(
-        'UVL?','UVL %d',
+        'UVL?','UVL %g',
         """ Set under voltage limit
         """,
         validator=lambda value, values: strict_discrete_range(value, values, step=.01),
@@ -254,10 +254,19 @@ class Gen40_38(Instrument):
         """,
     )
     
-    
+    def ramp_to_current(self, target_current, steps=20, pause=0.2):
+        """ Ramps to a target current from the set current value over
+        a certain number of linear steps, each separated by a pause duration.
+        :param target_current: A current in Amps
+        :param steps: An integer number of steps
+        :param pause: A pause duration in seconds to wait between steps """
+        currents = [round(i,2) for i in np.linspace(self.current, target_current, steps)]
+        for current in currents:
+            self.current = current
+            sleep(pause)
     
 
     def shutdown(self):
         log.info("Shutting down %s." % self.name)
-        #self.voltage = 0.
-        #self.isShutdown = True
+        self.ramp_to_current(0.0)
+        self.source_output = False
