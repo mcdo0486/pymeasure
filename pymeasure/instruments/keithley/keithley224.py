@@ -38,25 +38,32 @@ class Keithley224(Instrument):
     """ Class that represents the Keithley 224 Programmable Current Source 
     equipped with the Keithley 2243 GPIB interface card and provides a
     high-level interface for taking different kinds of measurements. Most 
-    commands have been coded. Status of commands have been included in
-    the docstrings. Note: the Excecute command (X) is enacted after every 
-    command.
+    commands have been coded. Untested commands are noted in the docstrings. 
+    Note: the Excecute command (X) is enacted after every command.
     """
     
+    ##################
+    # Initialization #
+    ##################
+ 
+    def __init__(self, adapter, **kwargs):
+        super().__init__(
+            adapter, "Keithley 224 Current Source", **kwargs
+        )  
 
     ##############
     # Properties #
     ##############
     
-    srq_mode = Instrument.setting(
-        "M%dX", 
-        """Integer property that sets SRQ (service request) mode. See Model 
-        Keithley 2243 IEEE Interface Manual for various mode option. Integer 
-        range between 0 to 31 (inclusive). Property has not been tested.""",
-        validator = strict_discrete_set,
-        values = list(range(0,32)),
+    front_display = Instrument.setting(
+        "D%dX",
+        """String property that changes the front panel display. Peforms the
+        same function as pressing the front panel DISPLAY buttons.""",
+        validator=strict_discrete_set,
+        values={"Current": 0, "VoltageLimit": 1, "DwellTime" : 2},
+        map_values=True,    
         )
-    
+
     current_range = Instrument.setting(
         "R%dX",
         """Integer property that sets output range of sourcing current. 
@@ -66,8 +73,7 @@ class Keithley224(Instrument):
         6 - range: 100 uA, max: +/- 199.95 uA, step size: 50 nA
         7 - range: 1 mA, max: +/- 1.9995 mA, step size: 500 nA
         8 - range: 10 mA, max: +/- 19.995 mA, step size: 5 uA
-        9 - range: 100 mA, max: +/- 101 mA, step size: 50 uA
-        Property has been tested. Property has been tested.""",
+        9 - range: 100 mA, max: +/- 101 mA, step size: 50 uA""",
         validator = strict_discrete_set,
         values = [0, 5, 6, 7, 8, 9],
         )
@@ -75,7 +81,7 @@ class Keithley224(Instrument):
     current = Instrument.setting(
         "I%gX",
         """Float property that sets the desired sourcing current value. 
-        Max current: +/- 101 mA. Property has been tested.""",
+        Max current: +/- 101 mA.""",
         validator = lambda v, vs: strict_discrete_range(v, vs, 5e-9),
         values = [-101e-3, 101e-3]    
         )
@@ -83,7 +89,7 @@ class Keithley224(Instrument):
     voltage_limit = Instrument.setting(
         "V%dX",
         """Integer property that sets the desired sourcing current. Max voltage 
-        limit: 105 V. Default value is 3 V. Property has been tested.""",
+        limit: 105 V. Default value is 3 V.""",
         validator = strict_discrete_set,
         values = list(range(0,106)),       
         )
@@ -91,99 +97,71 @@ class Keithley224(Instrument):
     dwell_time = Instrument.setting(
         "W%gX",
         """Float property that sets the desired dwell time. Value must be 
-        between 50 ms and 999.9 s. Default value is 50 ms. Property has been
-        tested.""",
+        between 50 ms and 999.9 s. Default value is 50 ms.""",
         validator = lambda v, vs: strict_discrete_range(v, vs, 0.001),
         values = [50e-3, 999.9],     
         )
     
-        
+    output = Instrument.setting(
+        "F%dX",
+        """String property that changes the output state. Performs the same 
+        function as pressing the OPERATE button.""",
+        validator=strict_discrete_set,
+        values={"OFF": 0, "ON": 1},
+        map_values=True,    
+        )
+    
     data_terminator = Instrument.setting(
         "Y%sX",
         """String prperty that sets the data string terminator. Any ASCII 
         character can be used except any capital letter, any number, a blank 
         value, +, -, /, ., or e. Default value is LF for carraige return 
-        and line feed. Property has not been tested."""
+        and line feed. 
+        
+        Property is UNTESTED."""
+        )
+ 
+    talk_prefix = Instrument.setting(
+        "G%dX",
+        """String property that sets the insturment to send data strings
+        with prefixes designating current, voltage, and dwell time when
+        addressed to talk. Default value is on.""",
+        validator=strict_discrete_set,
+        values={"ON": 0, "OFF": 1},
+        map_values=True,    
         )
     
+    eoi = Instrument.setting(
+        "K%dX",
+        """String property to send the GPIB EOI (End or Identify) line after 
+        the last byte in a data transfer sequence. Default is to send the 
+        EOI line.
+
+        Property is UNTESTED.""",
+        validator=strict_discrete_set,
+        values={"ON": 0, "OFF": 1},
+        map_values=True,    
+        )
+    
+    srq_mode = Instrument.setting(
+        "M%dX", 
+        """Integer property that sets SRQ (service request) mode. See Model 
+        Keithley 2243 IEEE Interface Manual for various mode option. Integer 
+        range between 0 to 31 (inclusive). 
+        
+        Property is UNTESTED.""",
+        validator = strict_discrete_set,
+        values = list(range(0,32)),
+        )
     
     ###########
     # Methods #
-    ###########
-    
-    def __init__(self, adapter, **kwargs):
-        super().__init__(
-            adapter, "Keithley 224 Current Source",
-        )   
-     
-    def display_current(self):
-        """Method that displays the sourcing current on the instrument front 
-        panel. Performs the same function as pressing the front panel SOURCE 
-        button. Method has been tested.
-        """
-        self.write("D0X")
-    
-    def display_voltage_limit(self):
-        """Method that displays the voltage limit on the instrument front 
-        panel. Performs the same function as pressing the front panel V-LIMIT 
-        button. Method has been tested.
-        """
-        self.write("D1X")
-    
-    def display_dwell_time(self):
-        """Method that displays the dwell time on the instrument front panel. 
-        Performs the same function as pressing the front panel TIME button.
-        Method has been tested.
-        """
-        self.write("D2X")
-
-    def output_off(self):
-        """ Method that turns off output. Performs the same function as 
-        pressing the OPERATE button and having the OUTPUT light turn off.
-        Method has been tested.
-        """
-        self.write("F0X")
-
-    def output_on(self):
-        """ Method that turns on output. Performs the same function as 
-        pressing the OPERATE button and having the OUTPUT light turn on.
-        Method has been tested.
-        """
-        self.write("F1X")
-
-    def talk_prefix_on(self):
-        """ Method that that sets the insturment to send data strings
-        with prefixes designating current, voltage, and dwell time when
-        addressed to talk. Default value is on. Method has been tested.
-        """
-        self.write("G0X")
-
-    def talk_prefix_off(self):
-        """ Method that that sets the insturment to send data strings
-        without prefixes designating current, voltage, and dwell time when
-        addressed to talk. Default value is on.
-        Method has been tested.
-        """
-        self.write("G1X")
-
-    def eoi_on(self):
-        """ Method to send the GPIB EOI (End or Identify) line after the last 
-        byte in a data transfer sequence. Default is to send the EOI line.
-        Method has not been tested.
-        """
-        self.write("K0X")
-
-    def eoi_off(self):
-        """ Method to not send the GPIB the EOI (End or Identify) line after 
-        the last byte in a data transfer sequence. Default value is to send 
-        the EOI line. Method has not been tested.
-        """
-        self.write("K1X")
+    ########### 
         
     def status(self):
         """ Method that reads status of the instrument. Data provided as a 
         string with order of current, voltage limit, and dwell time. Data 
-        prefixes present by default. Method has been tested.
+        prefixes present by default.
         """
         return self.read()
 
