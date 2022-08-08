@@ -164,6 +164,11 @@ class Keithley224(Instrument):
         prefixes present by default.
         """
         return self.read()
-
-
-
+    
+    def shutdown(self):
+        """Method that puts the instrument in a safe standby state. Output is
+        turned off and current set to 1 uA.
+        """
+        self.output = "OFF"
+        self.current = 1E-6
+        
