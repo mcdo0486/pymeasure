@@ -78,30 +78,30 @@ class DSP7225(Instrument):
 
     voltage = Instrument.control(
         "OA.", "OA. %g",
-        """ A floating point property that represents the voltage
+        """ A floating point property that represents the osciallator voltage
         in Volts. This property can be set. """,
-        validator=strict_discrete_range,
+        validator=lambda value, values: strict_discrete_range(value, values, step=.001),
         values=[0.001, 5]
     )
     frequency = Instrument.control(
         "OF.", "OF. %g",
         """ A floating point property that represents the lock-in
         frequency in Hz. This property can be set. """,
-        validator=strict_discrete_range,
+        validator=lambda value, values: strict_discrete_range(value, values, step=.001),
         values=[0.001, 1.2e5]
     )
     dac1 = Instrument.control(
         "DAC. 1", "DAC. 1 %g",
         """ A floating point property that represents the output
         value on DAC1 in Volts. This property can be set. """,
-        validator=strict_discrete_range,
+        validator=lambda value, values: strict_discrete_range(value, values, step=.001),
         values=[-12, 12]
     )
     dac2 = Instrument.control(
         "DAC. 2", "DAC. 2 %g",
         """ A floating point property that represents the output
         value on DAC2 in Volts. This property can be set. """,
-        validator=strict_discrete_range,
+        validator=lambda value, values: strict_discrete_range(value, values, step=.001),
         values=[-12, 12]
     )
     harmonic = Instrument.control(
@@ -110,7 +110,7 @@ class DSP7225(Instrument):
         harmonic mode control, taking values from 1 to 32.
         This property can be set. """,
         validator=truncated_discrete_set,
-        values=list(range(32))
+        values=list(range(1,33))
     )
     reference_phase = Instrument.control(
         "REFP.", "REFP. %g",
@@ -119,6 +119,37 @@ class DSP7225(Instrument):
         validator=modular_range_bidirectional,
         values=[0, 360]
     )
+    shield = Instrument.control(
+        "FLOAT", "FLOAT %d",
+        """ Input conector shield float / ground control.
+        0: Ground
+        1: Float
+        """,
+        validator=strict_discrete_set,
+        values=[0, 1]
+    )
+    fet = Instrument.control(
+        "FET", "FET %d",
+        """ Voltage mode input device control
+        0: Bipolar
+        1: FET
+        """,
+        validator=strict_discrete_set,
+        values=[0, 1]
+    ) 
+    coupling = Instrument.control(
+        "CP", "CP %d",
+        """ Input connector coupling mode control
+        0: AC
+        1: DC
+        """,
+        validator=strict_discrete_set,
+        values=[0, 1]
+    )
+    
+    
+    
+    
     x = Instrument.measurement("X.",
                                """ Reads the X value in Volts """
                                )
@@ -128,7 +159,7 @@ class DSP7225(Instrument):
     xy = Instrument.measurement("XY.",
                                 """ Reads both the X and Y values in Volts """
                                 )
-    mag = Instrument.measurement("MAG.",
+    magnitude = Instrument.measurement("MAG.",
                                  """ Reads the magnitude in Volts """
                                  )
     phase = Instrument.measurement("PHA.",
@@ -219,7 +250,10 @@ class DSP7225(Instrument):
     def setDifferentialMode(self, lineFiltering=True):
         """Sets lockin to differential mode, measuring A-B"""
         self.write("VMODE 3")
-        self.write("LF %d 0" % 3 if lineFiltering else 0)
+        if lineFiltering:
+            self.write("LF %d 0" % 3)
+        else:
+            self.write("LF %d 0" % 0)
 
     def setChannelAMode(self):
         self.write("VMODE 1")
@@ -247,14 +281,15 @@ class DSP7225(Instrument):
 
     @gain.setter
     def gain(self, value):
-        self.write("ACGAIN %d" % int(value / 10.0))
+        value = strict_discrete_set(int(value / 10), list(range(0,10)))
+        self.write("ACGAIN %d" % value)
 
     curve_buffer_bits = Instrument.control(
         "CBD", "CBD %d",
         """ An integer property that controls which data outputs are stored
         in the curve buffer. Valid values are values between 1 and 65,535. """,
         values=[1, 65535],
-        validator=strict_discrete_range,
+        validator=lambda value, values: strict_discrete_range(value, values, step=1),
         cast=int,
     )
 
@@ -265,7 +300,7 @@ class DSP7225(Instrument):
         amount of points is determined by the amount of curves that are stored,
         as set via the curve_buffer_bits property (32,768 / n) """,
         values=[1, 32768],
-        validator=strict_discrete_range,
+        validator=lambda value, values: strict_discrete_range(value, values, step=1),
         cast=int,
     )
 
@@ -282,7 +317,7 @@ class DSP7225(Instrument):
         to set this up since it happens automatically when acquisition starts.
         """,
         values=[1, 1000000000],
-        validator=strict_discrete_range,
+        validator=lambda value, values: strict_discrete_range(value, values, step=1),
         cast=int,
     )
 
@@ -554,5 +589,4 @@ class DSP7225(Instrument):
 
     def shutdown(self):
         log.info("Shutting down %s." % self.name)
-        self.voltage = 0.
-        self.isShutdown = True
+        self.gain = 0

@@ -52,10 +52,10 @@ class FWBell5080(Instrument):
         "*IDN?", """ Reads the idenfitication information. """
     )
     field = Instrument.measurement(
-        ":MEAS:FLUX?",
+        ":MEASure:FLUX?",
         """ Reads a floating point value of the field in the appropriate units.
         """,
-        get_process=lambda v: v.split(' ')[0]  # Remove units
+        get_process=lambda v: v.replace(' ', ':')  # Remove units
     )
     UNITS = {
         'gauss': 'DC:GAUSS', 'gauss ac': 'AC:GAUSS',
@@ -71,14 +71,17 @@ class FWBell5080(Instrument):
         validator=strict_discrete_set,
         values=UNITS,
         map_values=True,
-        get_process=lambda v: v.replace(' ', ':')  # Make output consistent with input
+        get_process=lambda v: v.replace(' ', ':')  # Make output consistent with input    
     )
 
-    def __init__(self, port):
+    def __init__(self, resourceName, kwargs={'baud_rate': 2400, 'timeout':500}):    
         super().__init__(
-            SerialAdapter(port, 2400, timeout=0.5),
-            "F.W. Bell 5080 Handheld Gaussmeter"
+            resourceName,
+            "F.W. Bell 5080 Handheld Gaussmeter",
+            includeSCPI=True,
+            **kwargs
         )
+    
 
     @property
     def range(self):
@@ -103,24 +106,6 @@ class FWBell5080(Instrument):
         elif 'amp-meter' in self.units:
             i = truncated_discrete_set(value, [23.88e3, 238.8e3, 2388e3])
         self.write(":SENS:FLUX:RANG %d" % i)
-
-    def read(self):
-        """ Overwrites the :meth:`Instrument.read <pymeasure.instruments.Instrument.read>`
-        method to remove the last 2 characters from the output.
-        """
-        return super().read()[:-2]
-
-    def ask(self, command):
-        """ Overwrites the :meth:`Instrument.ask <pymeasure.instruments.Instrument.ask>`
-        method to remove the last 2 characters from the output.
-        """
-        return super().ask()[:-2]
-
-    def values(self, command):
-        """ Overwrites the :meth:`Instrument.values <pymeasure.instruments.Instrument.values>`
-        method to remove the lastv2 characters from the output.
-        """
-        return super().values()[:-2]
 
     def reset(self):
         """ Resets the instrument. """
