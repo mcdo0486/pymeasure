@@ -72,10 +72,12 @@ class Gen40_38(Instrument):
         validator=strict_discrete_set,
         values=list(range(0,31))
     )
-
-    clear = Instrument.setting(
-        'CLS',
-        """Clear status sets FEVE and SEVE registers to zero """
+    frequency = Instrument.control(
+        "OF.", "OF. %g",
+        """ A floating point property that represents the lock-in
+        frequency in Hz. This property can be set. """,
+        validator=lambda v, vs: strict_discrete_range(v,vs,.01),
+        values=[0.001, 1.2e5]
     )
     
     reset = Instrument.setting(
