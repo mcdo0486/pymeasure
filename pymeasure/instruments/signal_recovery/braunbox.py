@@ -67,11 +67,9 @@ class BraunBox(Instrument):
         :param command: SCPI command string to be sent to the instrument
         """
         b_str = ''
-        print('writing', self.command_array)
         for idx, i in enumerate(self.command_array):
             b_str += '{0:02d}'.format(i)
-            if idx != len(self.command_array)-1: b_str +=','    
-        print('returning ask', b_str)
+            if idx != len(self.command_array)-1: b_str +=','            
         return self.ask(b_str)
     
     def clear_command(self):
@@ -103,12 +101,11 @@ class BraunBox(Instrument):
         sleep(self.delay)        
         return output
  
-       
  
     def initalize_magnetic_field(self):
         
         # serial flush
-        print(self.serial_flush())
+        self.serial_flush()
         
         # Enabled Pin Set Output
         self.digital_pin_mode(self.ENABLE_PIN, 1)
@@ -123,8 +120,8 @@ class BraunBox(Instrument):
         self.digital_pin_write(self.FORWARD_PIN, 0)
         
         # Turn on Enable and Forward pins
-        print('ENABLE', self.digital_pin_write(self.ENABLE_PIN, 1))
-        print('FORWARD', self.digital_pin_write(self.FORWARD_PIN, 1))      
+        self.digital_pin_write(self.ENABLE_PIN, 1)
+        self.digital_pin_write(self.FORWARD_PIN, 1)
         
     
     def shutdown(self):

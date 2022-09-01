@@ -210,8 +210,7 @@ class DSP7225(Instrument):
             sensitivities[0:7] = [np.nan] * 7
 
         # Check and map the value
-        value = truncated_discrete_set(value, sensitivities)
-        print(value)
+        value = truncated_discrete_set(value, sensitivities)        
         value = sensitivities.index(value)
 
         # Set sensitivity

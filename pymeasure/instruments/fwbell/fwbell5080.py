@@ -24,7 +24,6 @@
 
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import truncated_discrete_set, strict_discrete_set
-from pymeasure.adapters import SerialAdapter
 from numpy import array, float64
 
 
@@ -55,7 +54,8 @@ class FWBell5080(Instrument):
         ":MEASure:FLUX?",
         """ Reads a floating point value of the field in the appropriate units.
         """,
-        get_process=lambda v: v.replace(' ', ':')  # Remove units
+        get_process=lambda v: float(v.replace(' ', ':')[:-2])  # Remove semicolon and units
+
     )
     UNITS = {
         'gauss': 'DC:GAUSS', 'gauss ac': 'AC:GAUSS',
@@ -63,7 +63,7 @@ class FWBell5080(Instrument):
         'amp-meter': 'DC:AM', 'amp-meter ac': 'AC:AM'
     }
     units = Instrument.control(
-        ":UNIT:FLUX?", ":UNIT:FLUX%s",
+        ":UNIT:FLUX?", ":UNIT:FLUX:%s",
         """ A string property that controls the field units, which can take the
         values: 'gauss', 'gauss ac', 'tesla', 'tesla ac', 'amp-meter', and
         'amp-meter ac'. The AC versions configure the instrument to measure AC.
@@ -71,17 +71,19 @@ class FWBell5080(Instrument):
         validator=strict_discrete_set,
         values=UNITS,
         map_values=True,
-        get_process=lambda v: v.replace(' ', ':')  # Make output consistent with input    
     )
 
-    def __init__(self, resourceName, kwargs={'baud_rate': 2400, 'timeout':500}):    
+    def __init__(self, adapter, **kwargs):
+        # Replace spaces with colon and remove semicolons from instrument response
+        kwargs.setdefault('preprocess_reply', lambda x: x.replace(' ', ':').replace(';', ''))
         super().__init__(
-            resourceName,
+            adapter,
             "F.W. Bell 5080 Handheld Gaussmeter",
             includeSCPI=True,
+            asrl={'baud_rate': 2400,
+                  'timeout': 500},
             **kwargs
         )
-    
 
     @property
     def range(self):
@@ -89,23 +91,24 @@ class FWBell5080(Instrument):
         range in the active units. This can take the values of 300 G,
         3 kG, and 30 kG for Gauss, 30 mT, 300 mT, and 3 T for Tesla,
         and 23.88 kAm, 238.8 kAm, and 2388 kAm for Amp-meter. """
-        i = self.values(":SENS:FLUX:RANG?", cast=int)
+        range_index = int(self.ask(":SENS:FLUX:RANG?")[:-2])
         if 'gauss' in self.units:
-            return [300, 3e3, 30e3][i]
+            return [300, 3e3, 30e3][range_index]
         elif 'tesla' in self.units:
-            return [30e-3, 300e-3, 3][i]
+            return [30e-3, 300e-3, 3][range_index]
         elif 'amp-meter' in self.units:
-            return [23.88e3, 238.8e3, 2388e3][i]
+            return [23.88e3, 238.8e3, 2388e3][range_index]
 
     @range.setter
     def range(self, value):
+        range_value = 0
         if 'gauss' in self.units:
-            i = truncated_discrete_set(value, [300, 3e3, 30e3])
+            range_value = truncated_discrete_set(value, [300, 3e3, 30e3])
         elif 'tesla' in self.units:
-            i = truncated_discrete_set(value, [30e-3, 300e-3, 3])
+            range_value = truncated_discrete_set(value, [30e-3, 300e-3, 3])
         elif 'amp-meter' in self.units:
-            i = truncated_discrete_set(value, [23.88e3, 238.8e3, 2388e3])
-        self.write(":SENS:FLUX:RANG %d" % i)
+            range_value = truncated_discrete_set(value, [23.88e3, 238.8e3, 2388e3])
+        self.write(":SENS:FLUX:RANG %d" % range_value)
 
     def reset(self):
         """ Resets the instrument. """
