@@ -23,10 +23,8 @@
 #
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import strict_discrete_set
 
-
-class VanDerPauw(Instrument):
+class VdPChip(Instrument):
     """
 
     """
@@ -37,11 +35,10 @@ class VanDerPauw(Instrument):
         """,
     )
 
-    def __init__(self, adapter, **kwargs):
+    def __init__(self, adapter, kwargs={'baud_rate': 115200, 'timeout': 1000, 'write_termination':"\n",'read_termination':"\n"}):
         super().__init__(
             adapter,
-            "VanDerPauw tester",
+            "VdPChip board for Van Der Pauw tests",
             includeSCPI=True,
-            aslr = {'baud_rate': 115200, 'timeout': 1000, 'write_termination':"\n",'read_termination':"\n"},
             **kwargs
         )
