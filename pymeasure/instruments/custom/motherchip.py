@@ -42,6 +42,6 @@ class VanDerPauw(Instrument):
             adapter,
             "VanDerPauw tester",
             includeSCPI=True,
-            aslr = {'baud_rate': 115200, 'timeout': 1000, 'write_termination':"\n",'read_termination':"\n"}
+            aslr = {'baud_rate': 115200, 'timeout': 1000, 'write_termination':"\n",'read_termination':"\n"},
             **kwargs
         )

@@ -58,7 +58,7 @@ def process_command(cmd, serial, pins):
         serial.write(b"BAD INPUT")
 
 
-# DEV.0.0
+# DEV.1.0
 # DEV.1.1
 
 '''
