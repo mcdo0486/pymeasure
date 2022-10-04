@@ -38,7 +38,8 @@ setup(
     long_description=open('README.rst').read() + "\n\n" + open('CHANGES.txt').read(),
     long_description_content_type='text/x-rst',
     install_requires=[
-        "minimalmodbus == 2.0.1",
+        "minimalmodbus >= 2.0.1",
+        "pyusb >= 1.2.1",
         "numpy >= 1.6.1",
         "pandas >= 0.14",
         "pyvisa >= 1.8",
