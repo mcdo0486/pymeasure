@@ -147,9 +147,10 @@ class FWBell5180_Adapter(Adapter):
         return self.connection.read(0x81, bytes)
 
     def ask(self, command, bytes=128):
+        # filter for commands that query instrument
         question_commands = [i for i in self.COMMANDS if '?' in i]
         command = command.upper()
-        if command in self.COMMANDS:
+        if command in question_commands:
             self.connection.write(0x01, bytearray.fromhex(self.COMMANDS[command]))
             out_data = self.connection.read(0x81, bytes)
             if command == ':MEASURE:FLUX?':
