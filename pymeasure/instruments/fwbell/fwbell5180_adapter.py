@@ -27,7 +27,7 @@ import usb.core
 import struct
 
 
-class FWBell5081_Adapter(Adapter):
+class FWBell5180_Adapter(Adapter):
     """ Represents the F.W. Bell 5081 Handheld Gaussmeter and
     provides a high-level interface for interacting with the
     instrument
@@ -87,6 +87,11 @@ class FWBell5081_Adapter(Adapter):
         usb.util.claim_interface(self.connection, 0)
         self.connection.write(0x01, bytearray.fromhex(self.RANGE_Q))
 
+    def get_idn(self, out_data):
+        length = int(out_data[3])
+        response = out_data[4:length + 4]
+        return response.decode('utf-8').strip('\x00')
+
     def get_units(self, out_data):
         response = ''
         ac_dc = int(out_data[9])
@@ -131,6 +136,7 @@ class FWBell5081_Adapter(Adapter):
         """ Writes a command to the instrument
         :param command: SCPI command string to be sent to the instrument
         """
+        command = command.upper()
         if command in self.COMMANDS:
             self.connection.write(0x01, bytearray.fromhex(self.COMMANDS[command]))
             #out_data = self.connection.read(0x81, 128)
@@ -141,17 +147,20 @@ class FWBell5081_Adapter(Adapter):
         return self.connection.read(0x81, bytes)
 
     def ask(self, command, bytes=128):
+        question_commands = [i for i in self.COMMANDS if '?' in i]
+        command = command.upper()
         if command in self.COMMANDS:
             self.connection.write(0x01, bytearray.fromhex(self.COMMANDS[command]))
             out_data = self.connection.read(0x81, bytes)
-            if command == ':UNIT:FLUX?':
+            if command == ':MEASURE:FLUX?':
+                return self.get_measurement(out_data)
+            elif command == ':UNIT:FLUX?':
                 return self.get_units(out_data)
             elif command == ':SENS:FLUX:RANG?':
                 return self.get_range(out_data)
-            elif command == ':MEASURE:FLUX?':
-                return self.get_measurement(out_data)
             else:
-                raise NameError("Command not implemented")
+                #'*IDN?'
+                return self.get_idn(out_data)
         else:
             raise NameError("Invalid command")
 

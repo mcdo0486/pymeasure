@@ -22,12 +22,10 @@
 # THE SOFTWARE.
 #
 
-from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import truncated_discrete_set, strict_discrete_set
-from numpy import array, float64
+from pymeasure.instruments.fwbell.fwbell5080 import FWBell5080
+from pymeasure.instruments.fwbell.fwbell5180_adapter import FWBell5180_Adapter
 
-
-class FWBell5080(Instrument):
+class FWBell5180(FWBell5080):
     """ Represents the F.W. Bell 5080 Handheld Gaussmeter and
     provides a high-level interface for interacting with the
     instrument
@@ -47,84 +45,11 @@ class FWBell5080(Instrument):
 
     """
 
-    id = Instrument.measurement(
-        "*IDN?", """ Reads the idenfitication information. """
-    )
-    field = Instrument.measurement(
-        ":MEASure:FLUX?",
-        """ Reads a floating point value of the field in the appropriate units.
-        """,
-        get_process=lambda v: float(v.replace(' ', ':')[:-2])  # Remove semicolon and units
-
-    )
-    UNITS = {
-        'gauss': 'DC:GAUSS', 'gauss ac': 'AC:GAUSS',
-        'tesla': 'DC:TESLA', 'tesla ac': 'AC:TESLA',
-        'amp-meter': 'DC:AM', 'amp-meter ac': 'AC:AM'
-    }
-    units = Instrument.control(
-        ":UNIT:FLUX?", ":UNIT:FLUX:%s",
-        """ A string property that controls the field units, which can take the
-        values: 'gauss', 'gauss ac', 'tesla', 'tesla ac', 'amp-meter', and
-        'amp-meter ac'. The AC versions configure the instrument to measure AC.
-        """,
-        validator=strict_discrete_set,
-        values=UNITS,
-        map_values=True,
-    )
-
-    def __init__(self, adapter, **kwargs):
-        # Replace spaces with colon and remove semicolons from instrument response
-        kwargs.setdefault('preprocess_reply', lambda x: x.replace(' ', ':').replace(';', ''))
+    def __init__(self, **kwargs):
+        # No need to preprocess reply like FWBell5080()
+        kwargs.setdefault('preprocess_reply', None)
+        usb_adapter = FWBell5180_Adapter()
         super().__init__(
-            adapter,
-            "F.W. Bell 5080 Handheld Gaussmeter",
-            includeSCPI=True,
-            asrl={'baud_rate': 2400,
-                  'timeout': 500},
-            **kwargs
+            usb_adapter,
+            "F.W. Bell 5180 Handheld Gaussmeter"
         )
-
-    @property
-    def range(self):
-        """ A floating point property that controls the maximum field
-        range in the active units. This can take the values of 300 G,
-        3 kG, and 30 kG for Gauss, 30 mT, 300 mT, and 3 T for Tesla,
-        and 23.88 kAm, 238.8 kAm, and 2388 kAm for Amp-meter. """
-        range_index = int(self.ask(":SENS:FLUX:RANG?")[:-2])
-        if 'gauss' in self.units:
-            return [300, 3e3, 30e3][range_index]
-        elif 'tesla' in self.units:
-            return [30e-3, 300e-3, 3][range_index]
-        elif 'amp-meter' in self.units:
-            return [23.88e3, 238.8e3, 2388e3][range_index]
-
-    @range.setter
-    def range(self, value):
-        range_value = 0
-        if 'gauss' in self.units:
-            range_value = truncated_discrete_set(value, [300, 3e3, 30e3])
-        elif 'tesla' in self.units:
-            range_value = truncated_discrete_set(value, [30e-3, 300e-3, 3])
-        elif 'amp-meter' in self.units:
-            range_value = truncated_discrete_set(value, [23.88e3, 238.8e3, 2388e3])
-        self.write(":SENS:FLUX:RANG %d" % range_value)
-
-    def reset(self):
-        """ Resets the instrument. """
-        self.write("*OPC")
-
-    def fields(self, samples=1):
-        """ Returns a numpy array of field samples for a given sample number.
-
-        :param samples: The number of samples to preform
-        """
-        if samples < 1:
-            raise Exception("F.W. Bell 5080 does not support samples less than 1.")
-        else:
-            data = [self.field for i in range(int(samples))]
-            return array(data, dtype=float64)
-
-    def auto_range(self):
-        """ Enables the auto range functionality. """
-        self.write(":SENS:FLUX:RANG:AUTO")
