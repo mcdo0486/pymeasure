@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class Keithley224(Instrument):
+class Keithley236(Instrument):
     """ Class that represents the Keithley 236 Source Measure Units provides a
     high-level interface for taking different kinds of measurements. Most
     commands have been coded. Untested commands are noted in the docstrings.
@@ -171,7 +171,7 @@ class Keithley224(Instrument):
         validator=strict_discrete_set,
         values=[0, 1],
     )
-    
+
     ###########
     # Methods #
     ###########
