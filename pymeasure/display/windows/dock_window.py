@@ -27,7 +27,7 @@ import logging
 from pyqtgraph.dockarea import Dock, DockArea
 
 from .managed_window import ManagedWindowBase
-from ..Qt import QtCore, QtGui
+from ..Qt import QtCore, QtWidgets
 from ..widgets import (
     PlotWidget,
     LogWidget
@@ -39,8 +39,18 @@ log.addHandler(logging.NullHandler())
 
 class DockWindow(ManagedWindowBase):
     """
-    Display experiment output with an :class:`~pymeasure.display.widget.PlotWidget` class.
+    Display experiment output with an :class:`~pymeasure.display.widgets.image_widget.ImageWidget`
+    class.
 
+    :param procedure_class: procedure class describing the experiment (see
+        :class:`~pymeasure.experiment.procedure.Procedure`)
+    :param x_axis: the data column(s) for the x-axis of the plot. This may be string or a list
+        of strings from the data columns of the procedure.
+    :param y_axis: the data column(s) for the y-axis of the plot. This may be string or a list
+        of strings from the data columns of the procedure.
+    :param num_plots: the number of plots you want displayed in the DockWindow tab
+    :param \\**kwargs: optional keyword arguments that will be passed to
+        :class:`~pymeasure.display.windows.managed_window.ManagedWindowBase`
     """
 
     def __init__(self, procedure_class, x_axis=None, y_axis=None, num_plots=1, *args, **kwargs):
@@ -62,15 +72,32 @@ class DockWindow(ManagedWindowBase):
 
         self._setup_ui()
         self._layout()
-        self.browser_widget.browser.measured_quantities = [self.x_axis, self.y_axis]
+
+        measure_quantities = []
+        if type(self.x_axis) == list:
+            # Expand x_axis if it is a list
+            measure_quantities += [*self.x_axis]
+        else:
+            measure_quantities.append(self.x_axis)
+        if type(self.y_axis) == list:
+            # Expand y_axis if it is a list
+            measure_quantities += [*self.y_axis]
+        else:
+            measure_quantities.append(self.y_axis)
+
+        self.browser_widget.browser.measured_quantities = measure_quantities
+
+        logging.getLogger().addHandler(self.log_widget.handler)  # needs to be in Qt context?
+        log.setLevel(self.log_level)
+        log.info("DockWindow connected to logging")
 
     def _layout(self):
-        self.main = QtGui.QWidget(self)
+        self.main = QtWidgets.QWidget(self)
 
-        inputs_dock = QtGui.QWidget(self)
-        inputs_vbox = QtGui.QVBoxLayout(self.main)
+        inputs_dock = QtWidgets.QWidget(self)
+        inputs_vbox = QtWidgets.QVBoxLayout(self.main)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setSpacing(10)
         hbox.setContentsMargins(-1, 6, -1, 6)
         hbox.addWidget(self.queue_button)
@@ -78,17 +105,18 @@ class DockWindow(ManagedWindowBase):
         hbox.addStretch()
 
         if self.directory_input:
-            vbox = QtGui.QVBoxLayout()
+            vbox = QtWidgets.QVBoxLayout()
             vbox.addWidget(self.directory_label)
             vbox.addWidget(self.directory_line)
             vbox.addLayout(hbox)
 
         if self.inputs_in_scrollarea:
-            inputs_scroll = QtGui.QScrollArea()
+            inputs_scroll = QtWidgets.QScrollArea()
             inputs_scroll.setWidgetResizable(True)
-            inputs_scroll.setFrameStyle(QtGui.QScrollArea.NoFrame)
+            inputs_scroll.setFrameStyle(QtWidgets.QScrollArea.Shape.NoFrame)
 
-            self.inputs.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
+            self.inputs.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum,
+                                      QtWidgets.QSizePolicy.Policy.Fixed)
             inputs_scroll.setWidget(self.inputs)
             inputs_vbox.addWidget(inputs_scroll, 1)
 
@@ -103,24 +131,24 @@ class DockWindow(ManagedWindowBase):
         inputs_vbox.addStretch(0)
         inputs_dock.setLayout(inputs_vbox)
 
-        dock = QtGui.QDockWidget('Input Parameters')
+        dock = QtWidgets.QDockWidget('Input Parameters')
         dock.setWidget(inputs_dock)
-        dock.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)
+        dock.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dock)
 
         if self.use_sequencer:
-            sequencer_dock = QtGui.QDockWidget('Sequencer')
+            sequencer_dock = QtWidgets.QDockWidget('Sequencer')
             sequencer_dock.setWidget(self.sequencer)
-            sequencer_dock.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
-            self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, sequencer_dock)
+            sequencer_dock.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
+            self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, sequencer_dock)
 
         if self.use_estimator:
-            estimator_dock = QtGui.QDockWidget('Estimator')
+            estimator_dock = QtWidgets.QDockWidget('Estimator')
             estimator_dock.setWidget(self.estimator)
-            estimator_dock.setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
-            self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, estimator_dock)
+            estimator_dock.setFeatures(QtWidgets.QDockWidget.DockWidgetArea.NoDockWidgetFeatures)
+            self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, estimator_dock)
 
-        self.tabs = QtGui.QTabWidget(self.main)
+        self.tabs = QtWidgets.QTabWidget(self.main)
 
         self.dock_area = DockArea()
         self.dock_area.name = 'Dock Tab'
@@ -128,10 +156,18 @@ class DockWindow(ManagedWindowBase):
 
         self.tabs.addTab(self.dock_area, self.dock_area.name)
 
-        for i in range(self.num_plots):
+        for idx, i in enumerate(range(self.num_plots)):
+            x_axis_label = self.x_axis
+            y_axis_label = self.y_axis
+            # If x_axis or y_axis are a list, then we want to set the label to the passed list.
+            # However, if list is smaller than num_plots, repeat last item in the list.
+            if type(self.x_axis) == list:
+                x_axis_label = self.x_axis[min(idx, len(self.x_axis) - 1)]
+            if type(self.y_axis) == list:
+                y_axis_label = self.y_axis[min(idx, len(self.y_axis) - 1)]
             self.widget_list.append(
-                PlotWidget("Results Graph", self.procedure_class.DATA_COLUMNS, self.x_axis,
-                           self.y_axis))
+                PlotWidget("Results Graph", self.procedure_class.DATA_COLUMNS, x_axis_label,
+                           y_axis_label))
             dock = Dock("Dock " + str(i + 1), closable=False, size=(200, 50))
             self.dock_area.addDock(dock)
             dock.addWidget(self.widget_list[i])
@@ -150,11 +186,11 @@ class DockWindow(ManagedWindowBase):
 
         self.tabs.addTab(self.log_widget, self.log_widget.name)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical)
         splitter.addWidget(self.tabs)
         splitter.addWidget(self.browser_widget)
 
-        vbox = QtGui.QVBoxLayout(self.main)
+        vbox = QtWidgets.QVBoxLayout(self.main)
         vbox.setSpacing(0)
         vbox.addWidget(splitter)
 
