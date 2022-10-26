@@ -17,3 +17,7 @@ Windows classes
 .. automodule:: pymeasure.display.windows.dock_window
     :members:
     :show-inheritance:
+
+.. automodule:: pymeasure.display.windows.multiplot_window
+    :members:
+    :show-inheritance:

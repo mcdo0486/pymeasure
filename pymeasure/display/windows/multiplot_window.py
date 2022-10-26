@@ -32,7 +32,7 @@ from .managed_window import ManagedWindowBase
 from ..widgets.multiplot_widget import MultiPlotWidget, MultiPlotResultsDialog
 from ..widgets.log_widget import LogWidget
 from ..browser import BrowserItem
-from ..Qt import QtGui
+from ..Qt import QtWidgets
 from ..manager import Experiment
 from ...experiment import Results
 
@@ -41,6 +41,26 @@ log.addHandler(logging.NullHandler())
 
 
 class MultiPlotWindow(ManagedWindowBase):
+    """
+    A window for plotting multiple graphs that share the X axis with custom Y axis
+
+    .. seealso::
+        Tutorial :ref:`tutorial-plotterwindow`
+        A tutorial and example code for using the Plotter and PlotterWindow.
+
+    Parameters for :code:`__init__` constructor.
+
+    :param procedure_class: procedure class describing the experiment (see
+        :class:`~pymeasure.experiment.procedure.Procedure`)
+    :param x_axis: the initial data-column for the x-axis of the plot
+    :param y_axis: the initial data-column for the y-axis of the plot, either a single y-axis label
+        or a list of y-axis labels for each plot
+    :param linewidth: linewidth for the displayed curves, default is 1
+    :param num_plots: number of plots to display, default is 1
+    :param \\**kwargs: optional keyword arguments that will be passed to
+        :class:`~pymeasure.display.windows.managed_window.ManagedWindowBase`
+
+    """
 
     def __init__(self, procedure_class, x_axis=None, y_axis=None, linewidth=1, num_plots=1,
                  **kwargs):
@@ -60,7 +80,11 @@ class MultiPlotWindow(ManagedWindowBase):
         super().__init__(procedure_class, **kwargs)
 
         # Setup measured_quantities once we know x_axis and y_axis
-        self.browser_widget.browser.measured_quantities = [self.x_axis, self.y_axis]
+        measure_quantities = [self.x_axis, self.y_axis]
+        if type(self.y_axis) == list:
+            # Expand y_axis if it is a list
+            measure_quantities = [self.x_axis, *self.y_axis]
+        self.browser_widget.browser.measured_quantities = measure_quantities
 
         logging.getLogger().addHandler(self.log_widget.handler)  # needs to be in Qt context?
         log.setLevel(self.log_level)
@@ -73,7 +97,7 @@ class MultiPlotWindow(ManagedWindowBase):
             filenames = dialog.selectedFiles()
             for filename in map(str, filenames):
                 if filename in self.manager.experiments:
-                    QtGui.QMessageBox.warning(
+                    QtWidgets.QMessageBox.warning(
                         self, "Load Error",
                         "The file %s cannot be opened twice." % os.path.basename(filename)
                     )
@@ -86,7 +110,7 @@ class MultiPlotWindow(ManagedWindowBase):
                         if curves:
                             for curve in curves:
                                 curve.update_data()
-                    experiment.browser_item.progressbar.setValue(100.)
+                    experiment.browser_item.progressbar.setValue(100)
                     self.manager.load(experiment)
                     log.info('Opened data file %s' % filename)
 
