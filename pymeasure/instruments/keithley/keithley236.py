@@ -51,10 +51,12 @@ class Keithley236(Instrument):
     # Properties #
     ##############
 
-    bias = Instrument.setting(
+    output_level = Instrument.setting(
         "B%s,%d,%dX",
-        """The B command sets the bias level of the instrument.
-        B,
+        """The B command sets the output level of the instrument. When in source voltage dc mode 
+        `self.source(0,0)` or source current dc mode `self.source(1,0)` the output level is the
+        source output level. When in source voltage sweep mode `self.source(0,1)` or source current
+        sweep mode `self.source(1,1)` the output level is the bias for the sweep.
         """,
         validator=lambda v, vs: strict_discrete_range(v, vs, 5e-9),
         values=[-101e-3, 101e-3]
