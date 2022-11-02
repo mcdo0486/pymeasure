@@ -23,11 +23,10 @@
 #
 import logging
 
+from pyqtgraph.dockarea import Dock, DockArea
 import pyqtgraph as pg
 
 from .plot_widget import PlotWidget
-from .results_dialog import ResultsDialog
-from pyqtgraph.dockarea import Dock, DockArea
 from ..Qt import QtWidgets
 from .tab_widget import TabWidget
 
@@ -35,31 +34,31 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class DockResultsDialog(ResultsDialog):
-    """ DockPlotResultsDialog that will select the first element of x_axis or y_axis if it is a list
-    and pass it to parent class ResultsDialog
-    """
-
-    def __init__(self, columns, x_axis=None, y_axis=None, parent=None):
-        x_axis_label = x_axis
-        y_axis_label = y_axis
-        if isinstance(x_axis, list):
-            x_axis_label = x_axis_label[0]
-        if isinstance(y_axis, list):
-            y_axis_label = y_axis[0]
-        super().__init__(columns, x_axis_label, y_axis_label, parent)
-
-
 class DockWidget(TabWidget, QtWidgets.QWidget):
-    """ Widget that contains a DockArea with a number of Docks as passed by num_plots
+    """
+    Widget that contains a DockArea with a number of Docks as determined by num_plots.
+
+    :param name: Name for the TabWidget
+    :param procedure_class: procedure class describing the experiment (see
+        :class:`~pymeasure.experiment.procedure.Procedure`)
+    :param x_axis: the data column(s) for the x-axis of the plot. This may be string or a list
+        of strings from the data columns of the procedure.
+    :param y_axis: the data column(s) for the y-axis of the plot. This may be string or a list
+        of strings from the data columns of the procedure.
+    :param num_plots: the number of plots you want displayed in the DockWindow tab
+    :param linewidth: line width for plots in
+        :class:`~pymeasure.display.widgets.plot_widget.PlotWidget`
+    :param parent: Passed on to QtWidgets.QWidget. Default is None
     """
 
-    def __init__(self, name, procedure_class, x_axis=None, y_axis=None, num_plots=1, parent=None):
+    def __init__(self, name, procedure_class, x_axis=None, y_axis=None, num_plots=1, linewidth=1,
+                 parent=None):
         self.procedure_class = procedure_class
         super().__init__(name, parent)
         self.num_plots = num_plots
         self.x_axis = x_axis
         self.y_axis = y_axis
+        self.linewidth = linewidth
 
         self.dock_area = DockArea()
         self.docks = []
@@ -84,7 +83,7 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
             self.dock_area.addDock(dock)
             self.plot_frames.append(
                 PlotWidget("Results Graph", self.procedure_class.DATA_COLUMNS, x_axis_label,
-                           y_axis_label))
+                           y_axis_label, linewidth=self.linewidth))
             dock.addWidget(self.plot_frames[idx])
             self.docks.append(dock)
 
@@ -96,7 +95,7 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
 
     def new_curve(self, results, color=pg.intColor(0), **kwargs):
         if 'pen' not in kwargs:
-            kwargs['pen'] = pg.mkPen(color=color, width=1)
+            kwargs['pen'] = pg.mkPen(color=color, width=self.linewidth)
         if 'antialias' not in kwargs:
             kwargs['antialias'] = False
         curves = []
@@ -126,4 +125,4 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
 
     def set_color(self, curve, color):
         for i in range(self.num_plots):
-            curve[i].setPen(pg.mkPen(color=color, width=2))
+            curve[i].setPen(pg.mkPen(color=color, width=self.linewidth))
