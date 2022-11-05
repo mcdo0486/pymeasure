@@ -21,6 +21,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+from os import path
+
+import json
+
 import logging
 
 from pyqtgraph.dockarea import Dock, DockArea
@@ -87,11 +91,30 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
             dock.addWidget(self.plot_frames[idx])
             self.docks.append(dock)
 
+    def save_dock_state(self):
+        state = self.dock_area.saveState()
+        with open(path.curdir + '/dock_state.json', 'w') as f:
+            f.write(json.dumps(state))
+
     def _layout(self):
+        hbox = QtWidgets.QHBoxLayout()
+        self.save_layout = QtWidgets.QPushButton('Save Layout', self)
+        self.save_layout.clicked.connect(self.save_dock_state)
+        hbox.addStretch(5)
+        hbox.addWidget(self.save_layout, 1)
+
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(0)
+        vbox.addLayout(hbox)
         vbox.addWidget(self.dock_area)
         self.setLayout(vbox)
+
+        if path.exists(path.curdir + '/dock_state.json'):
+            with open(path.curdir + '/dock_state.json', 'r') as f:
+                dock_state = f.read()
+                # make sure the dock count matches number of plots
+                if dock_state.count('dock') == self.num_plots:
+                    self.dock_area.restoreState(json.loads(dock_state))
 
     def new_curve(self, results, color=pg.intColor(0), **kwargs):
         if 'pen' not in kwargs:
