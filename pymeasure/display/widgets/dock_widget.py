@@ -56,7 +56,7 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
     def __init__(self, name, procedure_class, x_axis_labels=None, y_axis_labels=None, linewidth=1,
                  parent=None):
         self.procedure_class = procedure_class
-        self.procedure_name = type(procedure_class).__name__
+        self.procedure_name = procedure_class.__name__
         super().__init__(name, parent)
 
         self.x_axis_labels = x_axis_labels
