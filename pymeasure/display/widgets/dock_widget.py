@@ -56,6 +56,7 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
     def __init__(self, name, procedure_class, x_axis_labels=None, y_axis_labels=None, linewidth=1,
                  parent=None):
         self.procedure_class = procedure_class
+        self.procedure_name = type(procedure_class).__name__
         super().__init__(name, parent)
 
         self.x_axis_labels = x_axis_labels
@@ -89,7 +90,7 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
 
     def save_dock_state(self):
         state = self.dock_area.saveState()
-        with open(path.curdir + '/dock_state.json', 'w') as f:
+        with open(path.curdir + '/' + self.procedure_name + '_dock_state.json', 'w') as f:
             f.write(json.dumps(state))
 
     def _layout(self):
@@ -105,8 +106,8 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
         vbox.addWidget(self.dock_area)
         self.setLayout(vbox)
 
-        if path.exists(path.curdir + '/dock_state.json'):
-            with open(path.curdir + '/dock_state.json', 'r') as f:
+        if path.exists(path.curdir + '/' + self.procedure_name + '_dock_state.json'):
+            with open(path.curdir + '/' + self.procedure_name + '_dock_state.json', 'r') as f:
                 dock_state = f.read()
                 # make sure the dock count matches number of plots
                 if dock_state.count('dock') == self.num_plots:
