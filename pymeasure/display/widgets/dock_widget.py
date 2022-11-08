@@ -40,14 +40,14 @@ log.addHandler(logging.NullHandler())
 
 class DockWidget(TabWidget, QtWidgets.QWidget):
     """
-    Widget that contains a DockArea with a number of Docks as determined by num_plots.
+    Widget that contains a DockArea with a number of Docks as determined by the length of
+    the longest x_axis_labels or y_axis_labels list.
 
     :param name: Name for the TabWidget
     :param procedure_class: procedure class describing the experiment (see
         :class:`~pymeasure.experiment.procedure.Procedure`)
     :param x_axis_labels: List of data column(s) for the x-axis of the plot.
     :param y_axis_labels: List of data column(s) for the y-axis of the plot.
-    :param num_plots: the number of plots you want displayed in the DockWindow tab
     :param linewidth: line width for plots in
         :class:`~pymeasure.display.widgets.plot_widget.PlotWidget`
     :param parent: Passed on to QtWidgets.QWidget. Default is None
@@ -55,15 +55,13 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
 
     def __init__(self, name, procedure_class, x_axis_labels=None, y_axis_labels=None, linewidth=1,
                  parent=None):
-        self.procedure_class = procedure_class
-        self.procedure_name = procedure_class.__name__
         super().__init__(name, parent)
 
+        self.procedure_class = procedure_class
+        self.procedure_name = procedure_class.__name__
         self.x_axis_labels = x_axis_labels
         self.y_axis_labels = y_axis_labels
-
         self.num_plots = max(len(self.x_axis_labels), len(self.y_axis_labels))
-
         self.linewidth = linewidth
 
         self.dock_area = DockArea()
