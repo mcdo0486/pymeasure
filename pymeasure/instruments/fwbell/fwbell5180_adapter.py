@@ -148,7 +148,7 @@ class FWBell5180_Adapter(Adapter):
             raise NameError("Invalid command")
 
     def read(self):
-        raise NotImplemented("Read isn't implemented with FW5180")
+        raise NotImplementedError("Read isn't implemented with FW5180")
 
     def ask(self, command, read_bytes=128):
         """ Queries a command to the instrument
@@ -158,7 +158,6 @@ class FWBell5180_Adapter(Adapter):
         command = command.upper()
         if command in self.QUERIES:
             out_data = self.write(command, read_bytes)
-            #print(bytearray(out_data).hex())
             if command == ':MEASURE:FLUX?':
                 return self.get_measurement(out_data)
             elif command == ':UNIT:FLUX?':
