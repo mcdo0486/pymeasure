@@ -34,6 +34,7 @@ class FWBell5080(Instrument):
     instrument
 
     :param port: The serial port of the instrument
+    :param name: Name of the instrument
 
     .. code-block:: python
 
@@ -48,12 +49,12 @@ class FWBell5080(Instrument):
 
     """
 
-    def __init__(self, adapter, **kwargs):
+    def __init__(self, adapter, name="F.W. Bell 5080 Handheld Gaussmeter", **kwargs):
         kwargs.setdefault('timeout', 500)
         kwargs.setdefault('baudrate', 2400)
         super().__init__(
             adapter,
-            "F.W. Bell 5080 Handheld Gaussmeter",
+            name,
             includeSCPI=True,
             **kwargs
         )

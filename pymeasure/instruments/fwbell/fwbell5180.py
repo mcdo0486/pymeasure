@@ -45,11 +45,11 @@ class FWBell5180(FWBell5080):
     """
 
     def __init__(self, adapter=None, **kwargs):
-        kwargs.setdefault('name', "F.W. Bell 5180 Handheld Gaussmeter")
         if adapter is None:
             adapter = FWBell5180_Adapter()
         super().__init__(
             adapter,
+            "F.W. Bell 5180 Handheld Gaussmeter",
             **kwargs
         )
 
