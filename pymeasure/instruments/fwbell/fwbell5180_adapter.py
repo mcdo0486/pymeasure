@@ -33,12 +33,10 @@ class FWBell5180_Adapter(Adapter):
     instrument. Valid commands are listed in self.COMMANDS.
 
     .. code-block:: python
-
-        meter = FWBell5081_Adapter()  # Connects over USB port by builtin  VENDOR_ID and PRODUCT_ID
-
+        adapter = FWBell5180_Adapter()  # Connects over USB port by builtin VENDOR_ID and PRODUCT_ID
     """
 
-    # Hex commands to send over USB
+    # Commands in hex to send over USB
     IDN_Q = '012B1800D07B0000'
     MEASURE_FLUX_Q = '012B1000107C0000'
     UNIT_FLUX_Q = '012B1000107C0000'
@@ -74,6 +72,8 @@ class FWBell5180_Adapter(Adapter):
         '*CLS': RESET,
     }
 
+    QUERIES = [i for i in COMMANDS if '?' in i]
+
     def __init__(self, preprocess_reply=None, **kwargs):
         self.preprocess_reply = preprocess_reply
         # Decimal VendorID=5794 & ProductID=20736
@@ -86,28 +86,31 @@ class FWBell5180_Adapter(Adapter):
 
         # Claim interface 0 - this interface provides IN and OUT endpoints to write to and read from
         usb.util.claim_interface(self.connection, 0)
-        # Once connected, we need to send RANGE_Q is needed for initialization
-        self.connection.write(0x01, bytearray.fromhex(self.RANGE_Q))
+        # Once connected, we need to send RANGE_Q and read back. This is needed for initialization.
+        self.write(':SENS:FLUX:RANG?')
 
-    def get_idn(self, out_data):
+    @staticmethod
+    def get_idn(out_data):
         length = int(out_data[3])
         response = out_data[4:length + 4]
         return bytearray(response).decode('utf-8').strip('\x00')
 
-    def get_units(self, out_data):
+    @staticmethod
+    def get_units(out_data):
         response = ''
-        ac_dc = int(out_data[9])
+        ac_dc = bool(out_data[9])
         response += 'AC:' if ac_dc else 'DC:'
         mode = int(out_data[6])
         if mode == 0:
             response += 'GAUSS'
         elif mode == 1:
             response += 'TESLA'
-        elif mode == 2:
+        else:
             response += 'AM'
         return response
 
-    def get_range(self, out_data):
+    @staticmethod
+    def get_range(out_data):
         scale = int(out_data[4])
         if scale == 0:
             response = 0
@@ -117,7 +120,8 @@ class FWBell5180_Adapter(Adapter):
             response = 2
         return response
 
-    def get_measurement(self, out_data):
+    @staticmethod
+    def get_measurement(out_data):
         if out_data[2] == 16:
             response = struct.unpack('>h', out_data[4:6])[0]
             scale = int(out_data[7])
@@ -128,33 +132,33 @@ class FWBell5180_Adapter(Adapter):
             else:
                 response *= 1e-3
         else:
-            response = 'invalid'  # -1
+            raise ValueError("Invalid output data")
         return response
 
-    def write(self, command, bytes=128):
+    def write(self, command, read_bytes=128):
         """ Writes a command to the instrument
         :param command: SCPI command string to be sent to the instrument.
+        :param read_bytes: Number of bytes to read from the instrument. Default 128
         """
         command = command.upper()
         if command in self.COMMANDS:
             self.connection.write(0x01, bytearray.fromhex(self.COMMANDS[command]))
-            self.connection.read(0x81, bytes)
+            return self.connection.read(0x81, read_bytes)
         else:
             raise NameError("Invalid command")
 
-    def read(self, bytes=128):
-        return self.connection.read(0x81, bytes)
+    def read(self):
+        raise NotImplemented("Read isn't implemented with FW5180")
 
-    def ask(self, command, bytes=128):
+    def ask(self, command, read_bytes=128):
         """ Queries a command to the instrument
         :param command: Query command string to be sent to the instrument
+        :param read_bytes: Number of bytes to read from the instrument. Default 128
         """
-        question_commands = [i for i in self.COMMANDS if '?' in i]
         command = command.upper()
-        if command in question_commands:
-            self.connection.write(0x01, bytearray.fromhex(self.COMMANDS[command]))
-            out_data = self.connection.read(0x81, bytes)
-            print(bytearray(out_data).hex())
+        if command in self.QUERIES:
+            out_data = self.write(command, read_bytes)
+            #print(bytearray(out_data).hex())
             if command == ':MEASURE:FLUX?':
                 return self.get_measurement(out_data)
             elif command == ':UNIT:FLUX?':
@@ -166,3 +170,7 @@ class FWBell5180_Adapter(Adapter):
                 return self.get_idn(out_data)
         else:
             raise NameError("Invalid command")
+
+    def shutdown(self):
+        usb.util.dispose_resources(self.connection)
+        self.connection = None

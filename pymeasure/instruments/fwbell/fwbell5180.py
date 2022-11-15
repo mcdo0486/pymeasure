@@ -45,14 +45,11 @@ class FWBell5180(FWBell5080):
     """
 
     def __init__(self, **kwargs):
-        # No need to preprocess reply like FWBell5080()
-        kwargs.setdefault('preprocess_reply', None)
-        # kwargs.setdefault('name', "F.W. Bell 5180 Handheld Gaussmeter")
+        kwargs.setdefault('name', "F.W. Bell 5180 Handheld Gaussmeter")
         adapter = FWBell5180_Adapter()
         super().__init__(
             adapter,
             **kwargs
-
         )
 
     field = Instrument.measurement(
@@ -60,3 +57,11 @@ class FWBell5180(FWBell5080):
         """ Reads a floating point value of the field in the appropriate units.
         """
     )
+
+    def ask(self, command):
+        # Pass ask commands directly to USB adapter
+        return self.adapter.ask(command)
+
+    def shutdown(self):
+        self.adapter.shutdown()
+        super().shutdown()
