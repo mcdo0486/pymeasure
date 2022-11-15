@@ -111,14 +111,7 @@ class FWBell5180_Adapter(Adapter):
 
     @staticmethod
     def get_range(out_data):
-        scale = int(out_data[4])
-        if scale == 0:
-            response = 0
-        elif scale == 1:
-            response = 1
-        else:
-            response = 2
-        return response
+        return int(out_data[4])
 
     @staticmethod
     def get_measurement(out_data):
@@ -148,7 +141,7 @@ class FWBell5180_Adapter(Adapter):
             raise NameError("Invalid command")
 
     def read(self):
-        raise NotImplementedError("Read isn't implemented with FW5180")
+        raise NotImplementedError("Read isn't implemented with FWBell5180")
 
     def ask(self, command, read_bytes=128):
         """ Queries a command to the instrument
