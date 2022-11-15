@@ -58,8 +58,6 @@ class Keithley236(Instrument):
         source output level. When in source voltage sweep mode `self.source(0,1)` or source current
         sweep mode `self.source(1,1)` the output level is the bias for the sweep.
         """,
-        validator=lambda v, vs: strict_discrete_range(v, vs, 5e-9),
-        values=[-101e-3, 101e-3]
     )
 
     source = Instrument.setting(
@@ -70,8 +68,6 @@ class Keithley236(Instrument):
         1,0 -> source current dc
         1,1 -> source current sweep
         """,
-        validator=lambda v, vs: strict_discrete_range(v, vs, 5e-9),
-        values=[-101e-3, 101e-3]
     )
 
     data_format = Instrument.setting(
@@ -90,8 +86,6 @@ class Keithley236(Instrument):
         0 -> Restore factory defaults
         1 -> Perform memory test
         2 -> Perform display test""",
-        validator=strict_discrete_set,
-        values=[0, 1, 2],
     )
 
     compliance = Instrument.setting(
@@ -99,8 +93,6 @@ class Keithley236(Instrument):
         """The L command sets the compliance level for the programmed source and selects the
         measurement range.
         """,
-        validator=strict_discrete_set,
-        values=[0, 1, 2, 3],
     )
 
     operate = Instrument.setting(
@@ -111,8 +103,6 @@ class Keithley236(Instrument):
         O -> Standby
         1 -> Operate
         """,
-        validator=strict_discrete_set,
-        values=[0, 1],
     )
 
     filter = Instrument.setting(
@@ -127,8 +117,6 @@ class Keithley236(Instrument):
         4 -> 16 readings
         5 -> 32 readings
         """,
-        validator=strict_discrete_set,
-        values=[0, 1, 2, 3, 4, 5],
     )
 
     trigger_control = Instrument.setting(
@@ -136,8 +124,6 @@ class Keithley236(Instrument):
         """Integer property that sets trigger control.
         0 - Disable input / output triggers
         1 - Enable input / output triggers""",
-        validator=strict_discrete_set,
-        values=[0, 1],
     )
 
     integration = Instrument.setting(
@@ -150,8 +136,6 @@ class Keithley236(Instrument):
         2 -> Line Cycle 60Hz 5 digit
         3 -> Line Cycle 50Hz 5 digit  
         """,
-        validator=strict_discrete_set,
-        values=[0, 1, 2, 3, 4, 5],
     )
 
     config = Instrument.measurement(
@@ -161,8 +145,6 @@ class Keithley236(Instrument):
         and other data. The information is transmitted only once for each U command.
         U0
         """,
-        validator=strict_discrete_set,
-        values=list(range(12)),
     )
 
     default_delay = Instrument.setting(
@@ -170,8 +152,6 @@ class Keithley236(Instrument):
         """The W command controls the enabling/ disabling of a fixed delay used to
         compensate for the instrument settling time when measuring resistive loads.
         """,
-        validator=strict_discrete_set,
-        values=[0, 1],
     )
 
     ###########
