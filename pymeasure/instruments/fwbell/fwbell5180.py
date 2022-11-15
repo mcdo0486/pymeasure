@@ -29,9 +29,8 @@ from pymeasure.instruments.fwbell.fwbell5180_adapter import FWBell5180_Adapter
 
 class FWBell5180(FWBell5080):
     """ Represents the F.W. Bell 5180 Handheld Gaussmeter and provides a high-level interface for
-    interacting with the instrument. It is a subclass of FWBell5080.
-    FWBell5180_Adapter will find USB port the device is plugged into by vendor and product id.
-
+    interacting with the instrument. It is a subclass of FWBell5080. By default,
+    USB adapter FWBell5180_Adapter connects to the device by vendor and product id.
 
     .. code-block:: python
         meter = FWBell5180()  # Connects over USB by finding device by vendor and product id
