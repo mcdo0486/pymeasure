@@ -25,7 +25,6 @@
 import logging
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import strict_discrete_set, strict_discrete_range
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -53,7 +52,7 @@ class Keithley236(Instrument):
 
     output_level = Instrument.setting(
         "B%s,%d,%dX",
-        """The B command sets the output level of the instrument. When in source voltage dc mode 
+        """The B command sets the output level of the instrument. When in source voltage dc mode
         `self.source(0,0)` or source current dc mode `self.source(1,0)` the output level is the
         source output level. When in source voltage sweep mode `self.source(0,1)` or source current
         sweep mode `self.source(1,1)` the output level is the bias for the sweep.
@@ -134,8 +133,7 @@ class Keithley236(Instrument):
         O -> Fast 4 digit
         1 -> Medium 5 digit
         2 -> Line Cycle 60Hz 5 digit
-        3 -> Line Cycle 50Hz 5 digit  
-        """,
+        3 -> Line Cycle 50Hz 5 digit""",
     )
 
     config = Instrument.measurement(
