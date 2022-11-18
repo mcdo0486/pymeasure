@@ -39,6 +39,7 @@ from . import anritsu
 from . import attocube
 from . import danfysik
 from . import deltaelektronika
+from . import eurotest
 from . import fluke
 from . import fwbell
 from . import hcp
@@ -53,6 +54,7 @@ from . import oxfordinstruments
 from . import parker
 from . import razorbill
 from . import rohdeschwarz
+from . import siglenttechnologies
 from . import signalrecovery
 from . import srs
 from . import tektronix
