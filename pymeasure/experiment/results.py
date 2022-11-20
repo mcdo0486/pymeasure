@@ -32,11 +32,11 @@ from importlib.machinery import SourceFileLoader
 from datetime import datetime
 from string import Formatter
 
-import pandas as pd
-import pint
+#import pandas as pd
+#import pint
 
 from .procedure import Procedure, UnknownProcedure
-from pymeasure.units import ureg
+#from pymeasure.units import ureg
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -136,6 +136,7 @@ class CSVFormatter(logging.Formatter):
 
     @staticmethod
     def _parse_columns(columns):
+        return
         """Parse the columns to get units in parenthesis."""
         units_pattern = r"\((?P<units>[\w/\(\)\*\t]+)\)"
         units = {}
@@ -146,6 +147,7 @@ class CSVFormatter(logging.Formatter):
         return units
 
     def format(self, record):
+        return
         """Formats a record as csv.
 
         :param record: record to format.
@@ -437,6 +439,7 @@ class Results:
 
     @property
     def data(self):
+        return
         # Need to update header count for correct referencing
         if self._header_count == -1:
             self._header_count = len(
@@ -471,6 +474,7 @@ class Results:
         return self._data
 
     def reload(self):
+        return
         """ Preforms a full reloading of the file data, neglecting
         any changes in the comments
         """

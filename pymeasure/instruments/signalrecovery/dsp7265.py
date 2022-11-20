@@ -29,7 +29,7 @@ import numpy as np
 
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import truncated_discrete_set, truncated_range, \
-    modular_range_bidirectional, strict_discrete_set
+    modular_range_bidirectional, strict_discrete_set, strict_discrete_range
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -120,8 +120,8 @@ class DSP7265(Instrument):
         """ An integer property that represents the reference
         harmonic mode control, taking values from 1 to 65535.
         This property can be set. """,
-        validator=truncated_discrete_set,
-        values=list(range(65535))
+        validator=lambda v, vs: strict_discrete_range(v, vs, step=1),
+        values=[1,65535]
     )
     reference_phase = Instrument.control(
         "REFP.", "REFP. %g",
