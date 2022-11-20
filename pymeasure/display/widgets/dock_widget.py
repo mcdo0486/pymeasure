@@ -135,4 +135,3 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
     def clear(self):
         for i in range(self.num_plots):
             self.plot_frames[i].plot.clear()
-            
