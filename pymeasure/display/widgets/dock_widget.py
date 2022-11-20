@@ -21,11 +21,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-from os import path
-
-import json
-
 import logging
+
+from os import path
+import json
 
 from pyqtgraph.dockarea import Dock, DockArea
 import pyqtgraph as pg
@@ -46,8 +45,10 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
     :param name: Name for the TabWidget
     :param procedure_class: procedure class describing the experiment (see
         :class:`~pymeasure.experiment.procedure.Procedure`)
-    :param x_axis_labels: List of data column(s) for the x-axis of the plot.
-    :param y_axis_labels: List of data column(s) for the y-axis of the plot.
+    :param x_axis_labels: List of data column(s) for the x-axis of the plot. If the list is shorter
+        than y_axis_labels the last item in the list to match y_axis_labels length.
+    :param y_axis_labels: List of data column(s) for the y-axis of the plot. If the list is shorter
+        than x_axis_labels the last item in the list to match x_axis_labels length.
     :param linewidth: line width for plots in
         :class:`~pymeasure.display.widgets.plot_widget.PlotWidget`
     :param parent: Passed on to QtWidgets.QWidget. Default is None
@@ -71,10 +72,18 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
         self._setup_ui()
         self._layout()
 
+    def save_dock_state(self):
+        state = self.dock_area.saveState()
+        with open(path.curdir + '/' + self.procedure_name + '_dock_state.json', 'w') as f:
+            f.write(json.dumps(state))
+
     def _setup_ui(self):
+        self.save_layout = QtWidgets.QPushButton('Save Dock Layout', self)
+        self.save_layout.clicked.connect(self.save_dock_state)
+
         for i in range(self.num_plots):
             # Set the default label for current dock from x_axis_labels and y_axis_labels
-            # However, if list is smaller than num_plots, repeat last item in the list.
+            # However, if list is shorter than num_plots, repeat last item in the list.
             x_label = self.x_axis_labels[min(i, len(self.x_axis_labels) - 1)]
             y_label = self.y_axis_labels[min(i, len(self.y_axis_labels) - 1)]
 
@@ -86,15 +95,8 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
             dock.addWidget(self.plot_frames[i])
             self.docks.append(dock)
 
-    def save_dock_state(self):
-        state = self.dock_area.saveState()
-        with open(path.curdir + '/' + self.procedure_name + '_dock_state.json', 'w') as f:
-            f.write(json.dumps(state))
-
     def _layout(self):
         hbox = QtWidgets.QHBoxLayout()
-        self.save_layout = QtWidgets.QPushButton('Save Layout', self)
-        self.save_layout.clicked.connect(self.save_dock_state)
         hbox.addStretch(5)
         hbox.addWidget(self.save_layout, 1)
 
@@ -104,10 +106,11 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
         vbox.addWidget(self.dock_area)
         self.setLayout(vbox)
 
+        # Load dock state file if it exists in the directory of the current procedure
         if path.exists(path.curdir + '/' + self.procedure_name + '_dock_state.json'):
             with open(path.curdir + '/' + self.procedure_name + '_dock_state.json', 'r') as f:
                 dock_state = f.read()
-                # make sure the dock count matches number of plots
+                # make sure number of docks in the file matches num_plots
                 if dock_state.count('dock') == self.num_plots:
                     self.dock_area.restoreState(json.loads(dock_state))
 
@@ -132,3 +135,4 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
     def clear(self):
         for i in range(self.num_plots):
             self.plot_frames[i].plot.clear()
+            
