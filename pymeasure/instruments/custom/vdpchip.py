@@ -24,18 +24,21 @@
 
 from pymeasure.instruments import Instrument
 
+
 class VdPChip(Instrument):
     """
-
+    Custom chip test
     """
 
     mode = Instrument.setting(
         "DEV.%d.%d",
-        """ 
+        """
         """,
     )
 
-    def __init__(self, adapter, kwargs={'baud_rate': 115200, 'timeout': 1000, 'write_termination':"\n",'read_termination':"\n"}):
+    def __init__(self, adapter,
+                 kwargs={'baud_rate': 115200, 'timeout': 1000, 'write_termination': "\n",
+                         'read_termination': "\n"}):
         super().__init__(
             adapter,
             "VdPChip board for Van Der Pauw tests",
