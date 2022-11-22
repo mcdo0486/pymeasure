@@ -484,7 +484,7 @@ class SequencerWidget(QtWidgets.QWidget):
         self._layout()
         # Load the sequence file if supplied.
         if sequence_file is not None:
-            self.load_sequence(fileName=sequence_file)
+            self.load_sequence(filename=sequence_file)
 
     def _check_queue_signature(self):
         """
