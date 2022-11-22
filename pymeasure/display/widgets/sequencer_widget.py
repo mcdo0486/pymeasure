@@ -588,13 +588,17 @@ class SequencerWidget(QtWidgets.QWidget):
                     file.write(i[0] + ' "' + i[1] + '", "' + i[2] + "\"\n")
                 log.info('Saved sequence file %s' % filename)
 
-    def load_sequence(self):
-        dialog = SequenceDialog()
-        if dialog.exec():
-            filenames = dialog.selectedFiles()
-            for filename in map(str, filenames):
-                if filename == '':
-                    return
-                else:
-                    self.tree.load_sequence(filename=filename)
-                    log.info('Loaded sequence file %s' % filename)
+    def load_sequence(self, filename=False):
+        if filename:
+            self.tree.load_sequence(filename=filename)
+            log.info('Loaded sequence file %s' % filename)
+        else:
+            dialog = SequenceDialog()
+            if dialog.exec():
+                filenames = dialog.selectedFiles()
+                for filename in map(str, filenames):
+                    if filename == '':
+                        return
+                    else:
+                        self.tree.load_sequence(filename=filename)
+                        log.info('Loaded sequence file %s' % filename)
