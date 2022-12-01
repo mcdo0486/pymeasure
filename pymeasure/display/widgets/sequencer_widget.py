@@ -42,7 +42,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
         :param parent: A QWidget that QT will give ownership of this Widget to.
     """
 
-    def __init__(self, data, header=["Level", "Parameter", "Sequence"], parent=None):
+    def __init__(self, data, header=("Level", "Parameter", "Sequence"), parent=None):
         super().__init__(parent)
 
         self.header = header
