@@ -294,6 +294,10 @@ class SequencerTreeView(QtWidgets.QTreeView):
 
     def setModel(self, model):
         super().setModel(model)
+        width = self.viewport().size().width()
+        self.setColumnWidth(0, int(0.7 * width))
+        self.setColumnWidth(1, int(0.9 * width))
+        self.setColumnWidth(2, int(0.9 * width))
         self.model().layoutChanged.connect(self.activate_persistent_editor)
 
 
@@ -417,10 +421,6 @@ class SequencerWidget(QtWidgets.QWidget):
     def _setup_ui(self):
         self.tree = SequencerTreeView(self)
         self.tree.setHeaderHidden(False)
-        width = self.tree.viewport().size().width()
-        self.tree.setColumnWidth(0, int(0.7 * width))
-        self.tree.setColumnWidth(1, int(0.9 * width))
-        self.tree.setColumnWidth(2, int(0.9 * width))
         self.tree.setItemDelegateForColumn(1, ComboBoxDelegate(self, self.names_choices))
         self.tree.setItemDelegateForColumn(2, LineEditDelegate(self))
         self.load_seq_button = QtWidgets.QPushButton("Load sequence")
