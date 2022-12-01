@@ -315,31 +315,32 @@ class SequenceDialog(QtWidgets.QFileDialog):
         self._setup_ui()
 
     def _setup_ui(self):
+        preview_tab = QtWidgets.QTabWidget()
+        vbox = QtWidgets.QVBoxLayout()
+        param_vbox = QtWidgets.QVBoxLayout()
+        vbox_widget = QtWidgets.QWidget()
+        param_vbox_widget = QtWidgets.QWidget()
+
+        self.preview_param = SequencerTreeView(parent=self)
+        triggers = QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
+        self.preview_param.setEditTriggers(triggers)
+        param_vbox.addWidget(self.preview_param)
+        vbox_widget.setLayout(vbox)
+        param_vbox_widget.setLayout(param_vbox)
+        preview_tab.addTab(param_vbox_widget, "Sequence Parameters")
         if not self.save:
             self.append_checkbox = QtWidgets.QCheckBox("Append to existing sequence")
-            preview_tab = QtWidgets.QTabWidget()
-            vbox = QtWidgets.QVBoxLayout()
-            param_vbox = QtWidgets.QVBoxLayout()
-            vbox_widget = QtWidgets.QWidget()
-            param_vbox_widget = QtWidgets.QWidget()
-
-            self.preview_param = SequencerTreeView(parent=self)
-            triggers = QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
-            self.preview_param.setEditTriggers(triggers)
-            param_vbox.addWidget(self.preview_param)
-            vbox_widget.setLayout(vbox)
-            param_vbox_widget.setLayout(param_vbox)
-            preview_tab.addTab(param_vbox_widget, "Sequence Parameters")
+            self.append_checkbox.setCheckState(QtCore.Qt.CheckState.Checked)
             self.layout().addWidget(self.append_checkbox)
-            self.layout().addWidget(preview_tab, 0, 5, 4, 1)
-            self.layout().setColumnStretch(5, 1)
-            self.setMinimumSize(900, 500)
-            self.resize(900, 500)
             self.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFile)
-            self.currentChanged.connect(self.update_preview)
         else:
             self.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
             self.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
+        self.layout().addWidget(preview_tab, 0, 5, 4, 1)
+        self.layout().setColumnStretch(5, 1)
+        self.setMinimumSize(900, 500)
+        self.resize(900, 500)
+        self.currentChanged.connect(self.update_preview)
 
     def update_preview(self, filename):
         if not os.path.isdir(filename) and filename != '':
