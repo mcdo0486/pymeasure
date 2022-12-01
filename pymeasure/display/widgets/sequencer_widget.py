@@ -557,13 +557,14 @@ class SequencerWidget(QtWidgets.QWidget):
         :param filename: Filename (string) of the to-be-loaded file.
         """
         append_flag = False
+
         if (filename is None) or (filename == ''):
             dialog = SequenceDialog()
-            dialog.exec()
-            append_flag = dialog.append_checkbox.checkState() == QtCore.Qt.CheckState.Checked
-            filenames = dialog.selectedFiles()
-            if filenames:
-                filename = filenames[0]
+            if dialog.exec():
+                append_flag = dialog.append_checkbox.checkState() == QtCore.Qt.CheckState.Checked
+                filenames = dialog.selectedFiles()
+                if filenames:
+                    filename = filenames[0]
             else:
                 return
 
