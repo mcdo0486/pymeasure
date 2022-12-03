@@ -182,7 +182,7 @@ class SequencerTreeModel(QtCore.QAbstractItemModel):
             as the way of finding out what to display where.
         """
         if orientation == QtCore.Qt.Orientation.Horizontal and \
-           role == QtCore.Qt.ItemDataRole.DisplayRole:
+                role == QtCore.Qt.ItemDataRole.DisplayRole:
             return self.header[section]
 
     def setData(self, index, value, role=QtCore.Qt.ItemDataRole.EditRole):
@@ -275,6 +275,11 @@ class LineEditDelegate(QtWidgets.QStyledItemDelegate):
 
 
 class SequencerTreeView(QtWidgets.QTreeView):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.width = self.viewport().size().width()
+
     def save(self, filename=None):
         self.model().save(filename)
 
@@ -296,10 +301,9 @@ class SequencerTreeView(QtWidgets.QTreeView):
 
     def setModel(self, model):
         super().setModel(model)
-        width = self.viewport().size().width()
-        self.setColumnWidth(0, int(0.7 * width))
-        self.setColumnWidth(1, int(0.9 * width))
-        self.setColumnWidth(2, int(0.9 * width))
+        self.setColumnWidth(0, int(0.7 * self.width))
+        self.setColumnWidth(1, int(0.9 * self.width))
+        self.setColumnWidth(2, int(0.9 * self.width))
         self.model().layoutChanged.connect(self.activate_persistent_editor)
 
 
