@@ -563,8 +563,7 @@ class SequencerWidget(QtWidgets.QWidget):
             if dialog.exec():
                 append_flag = dialog.append_checkbox.checkState() == QtCore.Qt.CheckState.Checked
                 filenames = dialog.selectedFiles()
-                if filenames:
-                    filename = filenames[0]
+                filename = filenames[0]
             else:
                 return
 
