@@ -312,6 +312,7 @@ class SequenceDialog(QtWidgets.QFileDialog):
         Generate a serialized form of the sequence tree
 
         :param save: True if we are saving a file. Default False.
+        :param parent: Passed on to QtWidgets.QWidget. Default is None
         """
         super().__init__(parent)
         self.save = save
