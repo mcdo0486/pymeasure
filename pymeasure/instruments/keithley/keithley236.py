@@ -23,6 +23,7 @@
 #
 
 import logging
+import re
 
 from pymeasure.instruments import Instrument
 
@@ -51,7 +52,7 @@ class Keithley236(Instrument):
     ##############
 
     output_level = Instrument.setting(
-        "B%s,%d,%dX",
+        "B%f,%d,%dX",
         """The B command sets the output level of the instrument. When in source voltage dc mode
         `self.source(0,0)` or source current dc mode `self.source(1,0)` the output level is the
         source output level. When in source voltage sweep mode `self.source(0,1)` or source current
@@ -70,13 +71,8 @@ class Keithley236(Instrument):
     )
 
     data_format = Instrument.setting(
-        "G%dX",
+        "G%d,%d,%dX",
         """String sets data output format""",
-    )
-
-    immediate_trigger = Instrument.setting(
-        "H0X",
-        """The H command immediately triggers the instrument.""",
     )
 
     reset = Instrument.setting(
@@ -88,7 +84,7 @@ class Keithley236(Instrument):
     )
 
     compliance = Instrument.setting(
-        "L%d,%dX",
+        "L%f,%dX",
         """The L command sets the compliance level for the programmed source and selects the
         measurement range.
         """,
@@ -156,15 +152,50 @@ class Keithley236(Instrument):
     # Methods #
     ###########
 
+    def interpret_output(self, output):
+        """
+        Intrepet the output string from the HP4192A, which includes
+        letter codes and measurement values e.g. NZFN+02.817E+03
+
+        :param output: Output from HP4192A
+        :returns: Tuple of (value, code)
+        """
+        valid = re.match(r'([A-Z]+)([+-][0-9.]+)(E[+-][0-9.]+)*', output)
+        if valid is not None and len(valid.groups()) > 1:
+            code = valid.groups()[0]
+            value = valid.groups()[1]
+            value_exponent = valid.groups()[2]
+            if value_exponent is not None:
+                value += value_exponent
+            return float(value), code
+        else:
+            raise ValueError('Invalid interpretation of output: %s' % output)
+
+    def immediate_trigger(self):
+        self.write('H0X')
+
+    def vi_output(self):
+        output_list = self.read().split(',')
+        voltage = self.interpret_output(output_list[0])[0]
+        current = self.interpret_output(output_list[1])[0]
+        return voltage, current
+
     def status(self):
         """ Method that reads status of the instrument. Data provided as a
         string with order of current, voltage limit, and dwell time. Data
         prefixes present by default.
         """
-        return self.read()
+        status_keys = ['model_rev', 'errors', 'stored_ascii', 'status_word', 'parameters',
+                       'compliance', 'suppression', 'calibration', 'sweep_defined', 'warning',
+                       'sweep_point', 'sweep_size']
+        status = {}
+        for i in range(12):
+            status[status_keys[i]] = self.ask("U%dX" % i)
+        return status
 
     def shutdown(self):
         """Method that puts the instrument in a safe standby state. Output is
         turned off and current set to 1 uA.
         """
         self.operate = False
+        super().shutdown()
