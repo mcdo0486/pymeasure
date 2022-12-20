@@ -588,3 +588,4 @@ class SequencerWidget(QtWidgets.QWidget):
         with open(filename, 'r') as file_object:
             self.tree.model().load(file_object, append=append_flag)
         self.tree.expandAll()
+
