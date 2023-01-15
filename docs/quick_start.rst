@@ -47,7 +47,27 @@ Installing VISA
 Typically, communication with your instrument will happen using PyVISA, which is installed automatically.
 However, this needs a VISA implementation installed to handle device communication.
 If you do not already know what this means, install the pure-Python :code:`pyvisa-py` package (using the same installation you used above).
-If you want to know more, consult `the PyVISA documentation <https://pyvisa.readthedocs.io/en/latest/introduction/configuring.html>`__. 
+If you want to know more, consult `the PyVISA documentation <https://pyvisa.readthedocs.io/en/latest/introduction/configuring.html>`__.
+
+Installing Qt libraries
+-----------------------
+
+PyMeasure uses the Qt framework to provide a graphic user interface (GUI) to display graphs and input parameters. The Qt
+framework is written in C++, so you'll need to install a Python library that provides Python bindings to the Qt framework.
+This step isn't required if you will only be using PyMeasure without a graphic display.
+
+There are four different python libraries, you only need to install one library.
+
+https://pypi.org/project/PyQt5/
+1. :code:`pip install pyqt5` :code:`conda install -c conda-forge pyqt`
+https://pypi.org/project/PyQt6/
+2. :code:`pip install pyqt6` There isn't an equivalent in the Conda Forge repository.
+
+https://wiki.qt.io/Qt_for_Python
+3. :code:`pip install pyside2` :code:`conda install -c conda-forge pyside2`
+
+https://pypi.org/project/PySide6/
+4. :code:`pip install pyside6` :code:`conda install -c conda-forge pyside6`
 
 Checking the version
 --------------------
