@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2022 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ from .validators import discreteTruncate
 from . import activetechnologies
 from . import advantest
 from . import agilent
+from . import aja
 from . import ametek
 from . import ami
 from . import anaheimautomation
@@ -38,8 +39,10 @@ from . import anapico
 from . import andeenhagerling
 from . import anritsu
 from . import attocube
+from . import bkprecision
 from . import danfysik
 from . import deltaelektronika
+from . import edwards
 from . import eurotest
 from . import fluke
 from . import fwbell
@@ -49,17 +52,22 @@ from . import hp
 from . import keithley
 from . import keysight
 from . import lakeshore
+from . import lecroy
+from . import mksinst
 from . import newport
 from . import ni
 from . import oxfordinstruments
 from . import parker
+from . import pendulum
 from . import razorbill
 from . import rohdeschwarz
 from . import siglenttechnologies
 from . import signalrecovery
 from . import srs
+from . import tcpowerconversion
 from . import tektronix
 from . import temptronic
+from . import texio
 from . import thermotron
 from . import thorlabs
 from . import toptica
