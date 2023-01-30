@@ -38,11 +38,10 @@ class LakeShore211(Instrument):
     Untested properties and methods will be noted in their docstrings.
 
     .. code-block:: python
-
         controller = LakeShore211("GPIB::1")
-        print(controller.temperature_A)     # Print the temperature at sensor A
-
+        print(controller.temperature_celsius)     # Print the sensor temperature in celsius
     """
+    alarm_keys = ['on', 'high_value', 'low_value', 'deadband', 'latch']
 
     def __init__(self, adapter, **kwargs):
         kwargs.setdefault('data_bits', 7)
@@ -127,7 +126,7 @@ class LakeShore211(Instrument):
 
         Property is UNTESTED
         """,
-        get_process=lambda x: int(x)
+        cast=int
     )
 
     def alarm_status(self):
@@ -137,13 +136,12 @@ class LakeShore211(Instrument):
         """
 
         status = self.values('ALARM?')
-        return [int(status[0]), float(status[1]), float(status[2]), float(status[3]),
-                int(status[4])]
+        return dict(zip(self.alarm_keys,
+                        [int(status[0]), float(status[1]), float(status[2]), float(status[3]),
+                         int(status[4])]))
 
     def alarm_config(self, on=True, high_value=270.0, low_value=0.0, deadband=0, latch=False):
         """Configures the alarm parameters for the input.
-        1,270.0,0,0,1[term]
-        on, high_value, low_value, deadband, latch
 
         :param on: Boolean setting of alarm, default True
         :param high_value: :class:`.ResultsCurve` list. List of curves associated with
