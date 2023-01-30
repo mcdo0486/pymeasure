@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2022 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -70,22 +70,15 @@ class TC038(Instrument):
     application.
 
     The oven always responds with an "OK" to all valid requests or commands.
+
+    :param str adapter: Name of the COM-Port.
+    :param int address: Address of the device. Should be between 1 and 99.
+    :param int timeout: Timeout in ms.
     """
 
     def __init__(self, adapter, address=1, timeout=1000,
                  includeSCPI=False, **kwargs):
-        """
-        Initialize the communication.
 
-        Parameters
-        ----------
-        adapter : str
-            name COM-Port.
-        address : int
-            address of the device. Should be between 1 and 99.
-        timeout : int
-            Timeout in ms.
-        """
         super().__init__(adapter, "TC038", timeout=timeout,
                          write_termination="\r", read_termination="\r",
                          parity=Parity.even, **kwargs)

@@ -22,6 +22,7 @@ Instruments by manufacturer:
    activetechnologies/index
    advantest/index
    agilent/index
+   aja/index
    ametek/index
    ami/index
    anaheimautomation/index
@@ -33,6 +34,7 @@ Instruments by manufacturer:
    danfysik/index
    deltaelektronica/index
    edwards/index
+   eurotest/index
    fluke/index
    fwbell/index
    heidenhain/index
@@ -41,6 +43,8 @@ Instruments by manufacturer:
    keithley/index
    keysight/index
    lakeshore/index
+   lecroy/index
+   mksinst/index
    newport/index
    ni/index
    oxfordinstruments/index
@@ -48,10 +52,14 @@ Instruments by manufacturer:
    pendulum/index
    razorbill/index
    rohdeschwarz/index
+   siglenttechnologies/index
    signalrecovery/index
    srs/index
+   tcpowerconversion/index
    tektronix/index
+   teledyne/index
    temptronic/index
+   texio/index
    thermotron/index
    thorlabs/index
    toptica/index
