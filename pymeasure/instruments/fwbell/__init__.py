@@ -23,3 +23,4 @@
 #
 
 from .fwbell5080 import FWBell5080
+from .fwbell5180 import FWBell5180
