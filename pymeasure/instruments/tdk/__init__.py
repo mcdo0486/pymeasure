@@ -22,5 +22,5 @@
 # THE SOFTWARE.
 #
 
-from tdk_gen40_38 import TDK_Gen40_38
-from tdk_gen80_65 import TDK_Gen80_65
+from .tdk_gen40_38 import TDK_Gen40_38
+from .tdk_gen80_65 import TDK_Gen80_65
