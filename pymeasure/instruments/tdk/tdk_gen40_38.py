@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 
-from tdk_base import TDK_Lambda_Base
+from .tdk_base import TDK_Lambda_Base
 
 
 class TDK_Gen40_38(TDK_Lambda_Base):
