@@ -24,13 +24,13 @@
 
 import logging
 
-from dsp_base import DSPBase
+from .dsp_base import DSPBase
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class DSP7265(DSPBase):
+class DSP7225(DSPBase):
     frequency_values = [0.001, 1.2e5]
     harmonic_values = [1, 32]
     curve_buffer_bit_values = [1, 65535]
