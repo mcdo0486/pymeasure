@@ -277,7 +277,8 @@ class DSPBase(Instrument):
 
     @gain.setter
     def gain(self, value):
-        self.write("ACGAIN %d" % int(value / 10.0))
+        value = strict_discrete_set(int(value / 10), list(range(0, 10)))
+        self.write("ACGAIN %d" % value)
 
     curve_buffer_bits = Instrument.control(
         "CBD", "CBD %d",
