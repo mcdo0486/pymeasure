@@ -23,13 +23,7 @@
 #
 
 import logging
-from time import sleep, time
 
-import numpy as np
-
-from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import truncated_discrete_set, truncated_range, \
-    modular_range_bidirectional, strict_discrete_set, strict_discrete_range
 from dsp_base import DSPBase
 
 log = logging.getLogger(__name__)
@@ -37,11 +31,10 @@ log.addHandler(logging.NullHandler())
 
 
 class DSP7265(DSPBase):
-
     frequency_values = [0.001, 1.2e5]
     harmonic_values = [1, 32]
     curve_buffer_bit_values = [1, 65535]
-    
+
     def __init__(self, adapter, **kwargs):
         super().__init__(
             adapter,
@@ -51,4 +44,3 @@ class DSP7265(DSPBase):
             preprocess_reply=lambda r: r.replace('\x00', ''),
             **kwargs
         )
-
