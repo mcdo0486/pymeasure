@@ -9,6 +9,7 @@ dependencies:
   - pyqt=5.15.7
   - pyqtgraph=0.12.4
   - pyserial=3.4
+  - pyusb=1.2.1
   - pyvisa=1.11.3
   - pyzmq=22.3.0
   - qt=5.15.4

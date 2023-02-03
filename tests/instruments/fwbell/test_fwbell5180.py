@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2023 PyMeasure Developers
+# Copyright (c) 2013-2022 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,5 +22,30 @@
 # THE SOFTWARE.
 #
 
-from .fwbell5080 import FWBell5080
-from .fwbell5180 import FWBell5180
+from pymeasure.test import expected_protocol
+
+from pymeasure.instruments.fwbell.fwbell5180 import FWBell5180
+
+
+def test_init():
+    with expected_protocol(
+            FWBell5180,
+            [],
+    ):
+        pass  # Verify the expected communication.
+
+
+def test_units():
+    with expected_protocol(
+            FWBell5180,
+            [(b":UNIT:FLUX:DC:GAUSS", None)],
+    ) as instr:
+        instr.units = 'gauss'
+
+
+def test_field():
+    with expected_protocol(
+            FWBell5180,
+            [(b":MEASure:FLUX?", 123.45)],
+    ) as instr:
+        assert instr.field == 123.45
