@@ -22,7 +22,21 @@
 # THE SOFTWARE.
 #
 
-from .lakeshore221 import LakeShore211
-from .lakeshore331 import LakeShore331
-from .lakeshore421 import LakeShore421
-from .lakeshore425 import LakeShore425
+from pymeasure.test import expected_protocol
+
+from pymeasure.instruments.lakeshore.lakeshore221 import LakeShore211
+
+def test_init():
+    with expected_protocol(
+            LakeShore211,
+            [],
+            ):
+        pass  # Verify the expected communication.
+
+
+def test_temp_kelvin():
+    with expected_protocol(
+            LakeShore211,
+            [(b"KRDG?", b"27.1")],
+            ) as instr:
+        assert instr.temperature_kelvin == 27.1
