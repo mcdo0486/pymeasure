@@ -23,13 +23,10 @@
 #
 
 import logging
-from time import sleep, time
-
-import numpy as np
+from time import sleep
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import truncated_discrete_set, truncated_range, \
-    modular_range_bidirectional, strict_discrete_set, strict_discrete_range
+from pymeasure.instruments.validators import strict_discrete_range
 from dsp_base import DSPBase
 
 log = logging.getLogger(__name__)
