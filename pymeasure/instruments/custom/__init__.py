@@ -22,4 +22,4 @@
 # THE SOFTWARE.
 #
 
-from braunbox import BraunBox
+from .braunbox import BraunBox
