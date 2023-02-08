@@ -111,7 +111,7 @@ class FWBell5180_Adapter(Adapter):
 
     @staticmethod
     def get_range(out_data):
-        return int(out_data[4])
+        return str(int(out_data[4]))
 
     @staticmethod
     def get_measurement(out_data):
@@ -126,7 +126,7 @@ class FWBell5180_Adapter(Adapter):
                 response *= 1e-3
         else:
             raise ValueError("Invalid output data")
-        return response
+        return f"{response:.5f}"
 
     def write(self, command, read_bytes=128):
         """ Writes a command to the instrument
