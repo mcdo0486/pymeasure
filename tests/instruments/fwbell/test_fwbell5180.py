@@ -46,6 +46,6 @@ def test_units():
 def test_field():
     with expected_protocol(
             FWBell5180,
-            [(b":MEASure:FLUX?", 123.45)],
+            [(b":MEASure:FLUX?", '123.45')],
     ) as instr:
         assert instr.field == 123.45
