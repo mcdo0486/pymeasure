@@ -39,16 +39,24 @@ class TDK_Lambda_Base(Instrument):
     This is the base class for TDK Lambda Genesys
     """
 
-    def __init__(self, adapter, address, **kwargs):
+    def __init__(self, adapter, address, name="TDK Lambda Base", **kwargs):
         super().__init__(
             adapter,
-            name="TDK Lambda Base",
+            name=name,
             includeSCPI=False,
             **kwargs
         )
         self.adapter.connection.read_termination = '\r'
         self.adapter.connection.write_termination = '\r'
         self.address = address
+
+    def ask(self, command):
+        """ Queries a command to the instrument
+        "OK\r"
+
+        :param command: SCPI command string to be sent to the instrument
+        """
+        self.adapter.connection.query(command)
 
     def write(self, command):
         """ Queries a command to the instrument
