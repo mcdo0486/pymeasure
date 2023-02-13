@@ -56,7 +56,7 @@ class TDK_Lambda_Base(Instrument):
 
         :param command: SCPI command string to be sent to the instrument
         """
-        self.adapter.connection.query(command)
+        return self.adapter.connection.query(command)
 
     def write(self, command):
         """ Queries a command to the instrument
