@@ -63,10 +63,10 @@ class DSPBase(Instrument):
                   # Dual modes
                   'x2', 'y2', 'magnitude2', 'phase2', 'sensitivity2']
 
-    def __init__(self, adapter, **kwargs):
+    def __init__(self, adapter, name="Signal Recovery DSP Base", **kwargs):
         super().__init__(
             adapter,
-            name="Signal Recovery DSP Base",
+            name=name,
             includeSCPI=False,
             # Remove extra unicode character
             preprocess_reply=lambda r: r.replace('\x00', ''),
@@ -78,14 +78,14 @@ class DSPBase(Instrument):
         """ A floating point property that represents the oscillator voltage
         in Volts. This property can be set. """,
         validator=lambda value, values: strict_discrete_range(value, values, step=.001),
-        values=[0.001, 5]
+        values=[0., 5]
     )
     frequency = Instrument.control(
         "OF.", "OF. %g",
         """ A floating point property that represents the lock-in
         frequency in Hz. This property can be set. """,
         validator=lambda value, values: strict_discrete_range(value, values, step=.001),
-        values=[0.001, 2.5e5],
+        values=[0., 2.5e5],
         dynamic=True
     )
     dac1 = Instrument.control(
@@ -249,7 +249,7 @@ class DSPBase(Instrument):
     def setDifferentialMode(self, lineFiltering=True):
         """Sets lockin to differential mode, measuring A-B"""
         self.write("VMODE 3")
-        self.write("LF %d 0" % 3 if lineFiltering else 0)
+        self.write("LF %d 0" % (3 if lineFiltering else 0))
 
     def setChannelAMode(self):
         self.write("VMODE 1")

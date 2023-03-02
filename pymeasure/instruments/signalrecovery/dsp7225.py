@@ -39,8 +39,5 @@ class DSP7225(DSPBase):
         super().__init__(
             adapter,
             name="Signal Recovery DSP 7225",
-            includeSCPI=False,
-            # Remove extra unicode character
-            preprocess_reply=lambda r: r.replace('\x00', ''),
             **kwargs
         )
