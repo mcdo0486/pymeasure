@@ -51,7 +51,7 @@ class FWBell5080(Instrument):
 
     def __init__(self, adapter, name="F.W. Bell 5080 Handheld Gaussmeter", **kwargs):
         kwargs.setdefault('timeout', 500)
-        kwargs.setdefault('baudrate', 2400)
+        kwargs.setdefault('baud_rate', 2400)
         super().__init__(
             adapter,
             name,
