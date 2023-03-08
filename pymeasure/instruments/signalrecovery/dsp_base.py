@@ -68,10 +68,12 @@ class DSPBase(Instrument):
             adapter,
             name=name,
             includeSCPI=False,
-            # Remove extra unicode character
-            preprocess_reply=lambda r: r.replace('\x00', ''),
             **kwargs
         )
+
+    def read(self, **kwargs):
+        """Read up to (excluding) `read_termination` or the whole read buffer."""
+        return super().read(**kwargs).replace('\x00', '')
 
     voltage = Instrument.control(
         "OA.", "OA. %g",
