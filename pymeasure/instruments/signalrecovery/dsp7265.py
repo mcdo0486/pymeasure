@@ -34,6 +34,7 @@ log.addHandler(logging.NullHandler())
 
 
 class DSP7265(DSPBase):
+
     CURVE_BITS = ['x', 'y', 'magnitude', 'phase', 'sensitivity', 'adc1',
                   'adc2', 'adc3', 'dac1', 'dac2', 'noise', 'ratio', 'log ratio',
                   'event', 'frequency part 1', 'frequency part 2',
