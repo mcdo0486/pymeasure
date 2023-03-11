@@ -22,5 +22,22 @@
 # THE SOFTWARE.
 #
 
-from .dsp7265 import DSP7265
-from .dsp7225 import DSP7225
+import logging
+
+from .dsp_base import DSPBase
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
+
+class DSP7225(DSPBase):
+    frequency_values = [0.001, 1.2e5]
+    harmonic_values = [1, 32]
+    curve_buffer_bit_values = [1, 65535]
+
+    def __init__(self, adapter, **kwargs):
+        super().__init__(
+            adapter,
+            name="Signal Recovery DSP 7225",
+            **kwargs
+        )
