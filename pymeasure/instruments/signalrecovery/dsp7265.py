@@ -41,10 +41,11 @@ class DSP7265(DSPBase):
                   # Dual modes
                   'x2', 'y2', 'magnitude2', 'phase2', 'sensitivity2']
 
-    def __init__(self, adapter, **kwargs):
+    def __init__(self, adapter, name="Signal Recovery DSP 7265", **kwargs):
         super().__init__(
             adapter,
-            name="Signal Recovery DSP 7265",
+            name,
+            includeSCPI=False,
             **kwargs
         )
 
