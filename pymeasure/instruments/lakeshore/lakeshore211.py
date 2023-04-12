@@ -33,20 +33,6 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class AnalogMode(IntFlag):
-    VOLTAGE = 1
-    CURRENT = 2
-
-
-class AnalogRange(IntFlag):
-    RANGE_20K = 0
-    RANGE_100K = 1
-    RANGE_200K = 2
-    RANGE_325K = 3
-    RANGE_475K = 4
-    RANGE_1000K = 5
-
-
 class LakeShore211(Instrument):
     """ Represents the Lake Shore 211 Temperature Monitor and provides
     a high-level interface for interacting with the instrument.
@@ -60,6 +46,27 @@ class LakeShore211(Instrument):
         print(controller.temperature_celsius)     # Print the sensor temperature in celsius
 
     """
+    class AnalogMode(IntFlag):
+        VOLTAGE = 0
+        CURRENT = 1
+
+    class AnalogRange(IntFlag):
+        RANGE_20K = 0
+        RANGE_100K = 1
+        RANGE_200K = 2
+        RANGE_325K = 3
+        RANGE_475K = 4
+        RANGE_1000K = 5
+
+    class RelayNumber(IntFlag):
+        RELAY_ONE = 1
+        RELAY_TWO = 2
+
+    class RelayMode(IntFlag):
+        OFF = 0
+        ON = 1
+        ALARMS = 2
+
     alarm_keys = ['on', 'high_value', 'low_value', 'deadband', 'latch']
 
     def __init__(self, adapter, name="Lake Shore 211 Temperature Monitor", **kwargs):
@@ -103,9 +110,11 @@ class LakeShore211(Instrument):
         | 5      |0 – 1000 K|
         +--------+----------+
         """,
-        validator=lambda x: strict_discrete_set(x[0], list(AnalogMode)) and strict_discrete_set(
-            x[1], list(AnalogRange)),
-        get_process=lambda x: (AnalogMode(int(x[0])), AnalogRange(int(x[1]))),
+        # Validate and return tuple v
+        validator=lambda v, vs: (strict_discrete_set(v[0], vs[0]), strict_discrete_set(v[1], vs[1])),
+        values=[list(AnalogMode), list(AnalogRange)],  # These are the vs values in the validator lambda
+        get_process=lambda x: (LakeShore211.AnalogMode(x[0]), LakeShore211.AnalogRange(x[1])),
+        cast=int
     )
 
     analog_out = Instrument.measurement(
@@ -159,37 +168,30 @@ class LakeShore211(Instrument):
         """
     )
 
-    relay = Instrument.control(
-        "RELAY?", "RELAY %d,%d",
+    def get_relay_mode(self, relay):
         """
-        Control which relay to configure. Values need to be supplied as a tuple of
-        (relay number, relay mode)
-        Relay number can be 1 or 2
-
-        +--------+-----------------+
-        | setting|       mode      |
-        +--------+-----------------+
-        | 1      | low alarm relay |
-        +--------+-----------------+
-        | 2      | high alarm relay|
-        +--------+-----------------+
-
-        Relay mode can be 0, 1, or 2
-
-        +--------+--------+
-        | setting| mode   |
-        +--------+--------+
-        | 0      | off    |
-        +--------+--------+
-        | 1      | on     |
-        +--------+--------+
-        | 2      | alarms |
-        +--------+--------+
+        Get the status of a relay
 
         Property is UNTESTED
-        """,
-        cast=int
-    )
+
+        :param RelayNumber relay: Specify which relay to query
+        :return Current RelayNumber of the relay
+        """
+        relay = strict_discrete_set(relay, list(LakeShore211.RelayNumber))
+        return int(self.ask("RELAY? %d" % relay))
+
+    def configure_relay(self, relay, mode):
+        """
+        Configure the relay mode of a relay
+
+        Property is UNTESTED
+
+        :param RelayNumber relay: Specify which relay to configure
+        :param RelayMode mode: Specify which mode to assign
+        """
+        relay = strict_discrete_set(relay, list(LakeShore211.RelayNumber))
+        mode = strict_discrete_set(mode, list(LakeShore211.RelayMode))
+        self.write('RELAY %d %d' % (relay, mode))
 
     def get_alarm_status(self):
         """
@@ -203,7 +205,7 @@ class LakeShore211(Instrument):
                         [int(status[0]), float(status[1]), float(status[2]), float(status[3]),
                          int(status[4])]))
 
-    def set_alarm_config(self, on=True, high_value=270.0, low_value=0.0, deadband=0, latch=False):
+    def configure_alarm(self, on=True, high_value=270.0, low_value=0.0, deadband=0, latch=False):
         """Configures the alarm parameters for the input.
 
         :param on:  Boolean setting of alarm, default True
@@ -216,7 +218,7 @@ class LakeShore211(Instrument):
         command_string = "ALARM %d,%g,%g,%g,%d" % (on, high_value, low_value, deadband, latch)
         self.write(command_string)
 
-    def alarm_reset(self):
+    def reset_alarm(self):
         """Resets the alarm of the Lakeshore 211
         """
         self.write('ALMRST')
