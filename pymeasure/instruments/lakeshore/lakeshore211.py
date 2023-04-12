@@ -25,10 +25,26 @@
 import logging
 
 from pymeasure.instruments import Instrument
+from pymeasure.instruments.validators import strict_discrete_set
 from pyvisa.constants import Parity
+from enum import IntFlag
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+
+
+class AnalogMode(IntFlag):
+    VOLTAGE = 1
+    CURRENT = 2
+
+
+class AnalogRange(IntFlag):
+    RANGE_20K = 0
+    RANGE_100K = 1
+    RANGE_200K = 2
+    RANGE_325K = 3
+    RANGE_475K = 4
+    RANGE_1000K = 5
 
 
 class LakeShore211(Instrument):
@@ -87,7 +103,9 @@ class LakeShore211(Instrument):
         | 5      |0 – 1000 K|
         +--------+----------+
         """,
-        get_process=lambda x: (int(x[0]), int(x[1])),
+        validator=lambda x: strict_discrete_set(x[0], list(AnalogMode)) and strict_discrete_set(
+            x[1], list(AnalogRange)),
+        get_process=lambda x: (AnalogMode(int(x[0])), AnalogRange(int(x[1]))),
     )
 
     analog_out = Instrument.measurement(
