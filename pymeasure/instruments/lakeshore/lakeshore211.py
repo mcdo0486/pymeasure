@@ -46,6 +46,7 @@ class LakeShore211(Instrument):
         print(controller.temperature_celsius)     # Print the sensor temperature in celsius
 
     """
+
     class AnalogMode(IntFlag):
         VOLTAGE = 0
         CURRENT = 1
@@ -111,8 +112,10 @@ class LakeShore211(Instrument):
         +--------+----------+
         """,
         # Validate and return tuple v
-        validator=lambda v, vs: (strict_discrete_set(v[0], vs[0]), strict_discrete_set(v[1], vs[1])),
-        values=[list(AnalogMode), list(AnalogRange)],  # These are the vs values in the validator lambda
+        validator=lambda v, vs: (
+            strict_discrete_set(v[0], vs[0]), strict_discrete_set(v[1], vs[1])),
+        values=[list(AnalogMode), list(AnalogRange)],
+        # These are the vs values in the validator lambda
         get_process=lambda x: (LakeShore211.AnalogMode(x[0]), LakeShore211.AnalogRange(x[1])),
         cast=int
     )
@@ -175,9 +178,9 @@ class LakeShore211(Instrument):
         Property is UNTESTED
 
         :param RelayNumber relay: Specify which relay to query
-        :return Current RelayNumber of the relay
+        :return: Current RelayMode of queried relay
         """
-        relay = strict_discrete_set(relay, list(LakeShore211.RelayNumber))
+        relay = strict_discrete_set(relay, list(self.RelayNumber))
         return int(self.ask("RELAY? %d" % relay))
 
     def configure_relay(self, relay, mode):
@@ -189,15 +192,15 @@ class LakeShore211(Instrument):
         :param RelayNumber relay: Specify which relay to configure
         :param RelayMode mode: Specify which mode to assign
         """
-        relay = strict_discrete_set(relay, list(LakeShore211.RelayNumber))
-        mode = strict_discrete_set(mode, list(LakeShore211.RelayMode))
+        relay = strict_discrete_set(relay, list(self.RelayNumber))
+        mode = strict_discrete_set(mode, list(self.RelayMode))
         self.write('RELAY %d %d' % (relay, mode))
 
     def get_alarm_status(self):
         """
         Query the current alarm status
 
-        :return: List of current status [on, high_value, low_value, deadband, latch]
+        :return: Dictionary of current status [on, high_value, low_value, deadband, latch]
         """
 
         status = self.values('ALARM?')
