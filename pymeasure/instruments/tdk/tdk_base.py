@@ -92,14 +92,19 @@ class TDK_Lambda_Base(Instrument):
 
     address = Instrument.setting(
         "ADR %d",
-        """Set the address of the power supply [0-30].""",
+        """Set the address of the power supply 
+        
+        Valid values are integers between 0 - 30 (inclusive).""",
         validator=strict_discrete_set,
         values=list(range(0, 31))
     )
 
     clear = Instrument.setting(
         "CLS",
-        """Set FEVE and SEVE registers to zero."""
+        """Set FEVE and SEVE registers to zero.
+        
+        Property is UNTESTED.
+        """
     )
 
     reset = Instrument.setting(
@@ -111,11 +116,11 @@ class TDK_Lambda_Base(Instrument):
         "RMT?", "RMT %d",
         """Control remote operation of the power supply.
         
-        Valid values are ``LOC`` for local mode, ``REM`` for remote mode, and 
-        ``LLC`` for local lockout mode.
+        Valid values are ``loc`` for local mode, ``rem`` for remote mode, and 
+        ``llc`` for local lockout mode.
         """,
         validator=strict_discrete_set,
-        values={"LOC": 0, "REM": 1, "LLO": 2},
+        values={"loc": 0, "rem": 1, "llo": 2},
         map_values=True
     )
 
@@ -124,8 +129,10 @@ class TDK_Lambda_Base(Instrument):
         """Measure to see if the multi-drop option is available on the power
         supply. 
         
-        If value is ``0``, the option is not available, if ``1`` it is 
+        If return value is 0, the option is not available, if 1 it is 
         available.
+        
+        Property is UNTESTED.
         """
     )
 
@@ -133,33 +140,61 @@ class TDK_Lambda_Base(Instrument):
         "MS?",
         """Measure the master and slave settings. 
         
-        Possible master values are ``1,2,3,4``. The slave value is ``0``.
+        Possible master return values are 1, 2, 3, and 4. The slave value is 0.
+        
+        Property is UNTESTED.
         """
     )
 
     repeat = Instrument.measurement(
         "\\",
-        """Measure the last command again."""
+        """Measure the last command again.
+        
+        Returns the last command.
+        
+        Property is UNTESTED.
+        """
     )
 
     identity = Instrument.measurement(
         "IDN?",
-        """Measure the identity of the instrument."""
+        """Measure the identity of the instrument.
+        
+        Returns the instrument model as an ASCII string in the format:
+        ``LAMBDA, GENX-Y``
+        
+        Property is UNTESTED.
+        """
     )
 
     version = Instrument.measurement(
         "REV?",
-        """Measure the software version on instrument."""
+        """Measure the software version on instrument.
+        
+        Returns the software version as an ASCII string.
+        
+        Property is UNTESTED.
+        """
     )
 
     serial = Instrument.measurement(
         "SN?",
-        """Measure the serial number of the instrument."""
+        """Measure the serial number of the instrument.
+        
+        Returns the serial number of of the instrument as an ASCII string.
+        
+        Property is UNTESTED.
+        """
     )
 
     last_test_date = Instrument.measurement(
         "DATE?",
-        """Measure the date of the last test."""
+        """Measure the date of the last test.
+        
+        Returns the date of last test in as a string in the format: yyyy/mm/dd.
+        
+        Property is UNTESTED.
+        """
     )
 
     voltage = Instrument.control(
@@ -185,12 +220,20 @@ class TDK_Lambda_Base(Instrument):
 
     actual_current = Instrument.measurement(
         "MC?",
-        """Measure the actual output current."""
+        """Measure the actual output current.
+        
+        Current value returned with five digits of precision.
+        """
     )
 
     mode = Instrument.measurement(
         "MODE?",
-        """Measure the output mode of the power supply."""
+        """Measure the output mode of the power supply.
+        
+        When power supply is on, the returned value will be either ``CV`` or 
+        ``CC`` for control voltage or control current, respectively. If the 
+        power supply is off, the returned value will be ``OFF``.
+        """
     )
 
     display = Instrument.measurement(
