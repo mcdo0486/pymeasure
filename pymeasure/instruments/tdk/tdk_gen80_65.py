@@ -35,8 +35,9 @@ from .tdk_base import TDK_Lambda_Base
 
 class TDK_Gen80_65(TDK_Lambda_Base):
     """
-    This is the class for the TDK Lambda Genesys 80-65 with builtin voltage
-    and current ranges and limits.
+    Represents the TDK Lambda Genesys 80-65 DC power supply. Class inherits
+    commands from the TDK_Lambda_Base parent class and utilizes dynamic
+    properties adjust valid values on various properties.
     """
     voltage_values = [0, 80]
     current_values = [0, 65]

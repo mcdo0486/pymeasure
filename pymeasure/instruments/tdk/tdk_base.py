@@ -53,6 +53,8 @@ class TDK_Lambda_Base(Instrument):
     Do not directly instantiate an object with this class. Use one of the
     TDK-Lambda power supply instrument classes that inherit from this parent
     class.
+
+    Untested commands are noted in docstrings.
     """
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -233,6 +235,8 @@ class TDK_Lambda_Base(Instrument):
         When power supply is on, the returned value will be either ``CV`` or 
         ``CC`` for control voltage or control current, respectively. If the 
         power supply is off, the returned value will be ``OFF``.
+        
+        Property is UNTESTED.
         """
     )
 
@@ -242,7 +246,7 @@ class TDK_Lambda_Base(Instrument):
         
         Returns the measured voltage, programmed voltage, measured current,
         programmed current, over voltage set point, and under voltage set point 
-        as a ``list`` containing ``float`` objects.
+        as a list of floating point numbers.
         """,
         get_process=lambda v: [float(i) for i in v.split(',')],
     )
@@ -263,7 +267,7 @@ class TDK_Lambda_Base(Instrument):
         """Control the low pass filter frequency of the A to D converter
         for voltage and current measurement.
         
-        Valid frequency values ar 18, 23, or 46 Hz. Default value is 18 Hz.
+        Valid frequency values are 18, 23, or 46 Hz. Default value is 18 Hz.
         """,
         validator=strict_discrete_set,
         values=[18, 23, 46]
@@ -273,10 +277,10 @@ class TDK_Lambda_Base(Instrument):
         "OUT?", "OUT %d",
         """Control the output of the power supply.
         
-        Valid states are ``ON`` and ``OFF``. 
+        Valid values are ``on`` and ``off``. 
         """,
         validator=strict_discrete_set,
-        values={"ON": 1, "OFF": 0},
+        values={"on": 1, "off": 0},
         map_values=True
     )
 
@@ -284,11 +288,13 @@ class TDK_Lambda_Base(Instrument):
         "FLD?", "FLD %d",
         """Control the fold back protection of the power supply.
         
-        Valid states are ``ON`` to arm the fold back protection and ``OFF`` to 
-        cancels the fold back protection.
+        Valid values are ``on`` to arm the fold back protection and ``off`` to 
+        cancel the fold back protection.
+        
+        Property is UNTESTED.
         """,
         validator=strict_discrete_set,
-        values={"ON": 1, "OFF": 0},
+        values={"on": 1, "off": 0},
         map_values=True
     )
 
@@ -297,7 +303,10 @@ class TDK_Lambda_Base(Instrument):
         """Control the fold back delay.
          
         Adds an additional delay to the standard fold back delay (250 ms) by 
-        multiplying the set value by 0.1. Valid values are between 0 to 255
+        multiplying the set value by 0.1. Valid values are integers between 
+        0 to 255.
+        
+        Property is UNTESTED.
         """,
         validator=strict_range,
         values=[0, 255],
@@ -308,12 +317,17 @@ class TDK_Lambda_Base(Instrument):
         "FDBRST",
         """Set the additional fold back delay back to 0 s, restoring the
         standard 250 ms delay.
+        
+        Property is UNTESTED.
         """
     )
 
     over_voltage = Instrument.control(
         "OVP?", "OVP %g",
-        """Control the over voltage protection.""",
+        """Control the over voltage protection.
+        
+        Property is UNTESTED.
+        """,
         validator=lambda v, vs: strict_discrete_range(v, vs, step=0.01),
         values=[2, 44],
         dynamic=True
@@ -323,12 +337,17 @@ class TDK_Lambda_Base(Instrument):
         "OVM",
         """Set the over voltage protection to the maximum level for the power
         supply.
-        """,
+        
+        Property is UNTESTED.
+        """
     )
 
     under_voltage = Instrument.control(
         "UVL?", "UVL %g",
-        """Control the under voltage limit.""",
+        """Control the under voltage limit.
+        
+        Property is UNTESTED.
+        """,
         validator=lambda v, vs: strict_discrete_range(v, vs, step=0.01),
         values=[0, 38],
         dynamic=True
@@ -338,21 +357,29 @@ class TDK_Lambda_Base(Instrument):
         "AST?", "AST %d",
         """Control the auto restart mode. 
         
-        Valid values are ``ON`` and ``OFF``.
+        Valid values are ``on`` and ``off``.
+        
+        Property is UNTESTED.
         """,
         validator=strict_discrete_set,
-        values={"ON": 1, "OFF": 0},
+        values={"on": 1, "off": 0},
         map_values=True
     )
 
     save = Instrument.setting(
         "SAV",
-        """Set the instrument to save its settings.""",
+        """Set the instrument to save its settings.
+        
+        Property is UNTESTED.
+        """
     )
 
     recall = Instrument.setting(
         "RCL",
-        """Set the instrument to recall its settings.""",
+        """Set the instrument to recall its settings.
+        
+        Property is UNTESTED.
+        """
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
