@@ -41,6 +41,7 @@ import numpy as np
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+
 # =============================================================================
 # Instrument file
 # =============================================================================
@@ -66,27 +67,39 @@ class TDK_Lambda_Base(Instrument):
             adapter,
             name=name,
             includeSCPI=False,
+            asrl={'read_termination': "\r", 'write_termination': "\r"},
             **kwargs
         )
-        self.adapter.connection.read_termination = "\r"
-        self.adapter.connection.write_termination = "\r"
         self.address = address
-
-    def ask(self, command):
-        """Queries a command to the instrument
-        "OK\r"
-
-        :param command: SCPI command string to be sent to the instrument
-        """
-        return self.adapter.connection.query(command)
 
     def write(self, command):
         """Writes a command to the instrument
         "OK\r"
+        When writing a query to the instrument, the value is returned just fine.
+        WHen writing a value to the instrument, it returns "OK\r"
+        If this returned value is not stripped out, then there will be a lot of
+        "OK\r" in the read buffer.
+
+        Because we may get a value in return, we will use self.ask() to do an
+        additional read.
 
         :param command: SCPI command string to be sent to the instrument
         """
+
         self.ask(command)
+
+    def ask(self, command):
+        """
+        CommonBase.ask(command) uses the self.write() function. We need to not
+        Because self.write() returns self.ask(), we need to overwrite that
+        function to get out of an infinite loop.
+
+
+        #     :param command: SCPI command string to be sent to the instrument
+        """
+        return self.adapter.connection.query(command)
+
+
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Properties
@@ -115,15 +128,14 @@ class TDK_Lambda_Base(Instrument):
     )
 
     remote = Instrument.control(
-        "RMT?", "RMT %d",
+        "RMT?", "RMT %s",
         """Control remote operation of the power supply.
         
         Valid values are ``loc`` for local mode, ``rem`` for remote mode, and 
         ``llc`` for local lockout mode.
         """,
         validator=strict_discrete_set,
-        values={"loc": 0, "rem": 1, "llo": 2},
-        map_values=True
+        values=["LOC", "REM", "LLO"]
     )
 
     multidrop_capability = Instrument.measurement(
@@ -247,8 +259,7 @@ class TDK_Lambda_Base(Instrument):
         Returns the measured voltage, programmed voltage, measured current,
         programmed current, over voltage set point, and under voltage set point 
         as a list of floating point numbers.
-        """,
-        get_process=lambda v: [float(i) for i in v.split(',')],
+        """
     )
 
     status = Instrument.measurement(
@@ -274,28 +285,26 @@ class TDK_Lambda_Base(Instrument):
     )
 
     source_output = Instrument.control(
-        "OUT?", "OUT %d",
+        "OUT?", "OUT %s",
         """Control the output of the power supply.
         
-        Valid values are ``on`` and ``off``. 
+        Valid values are ``ON`` and ``OFF``. 
         """,
         validator=strict_discrete_set,
-        values={"on": 1, "off": 0},
-        map_values=True
+        values=["ON", "OFF"]
     )
 
     foldback = Instrument.control(
-        "FLD?", "FLD %d",
+        "FLD?", "FLD %s",
         """Control the fold back protection of the power supply.
         
-        Valid values are ``on`` to arm the fold back protection and ``off`` to 
+        Valid values are ``ON`` to arm the fold back protection and ``OFF`` to 
         cancel the fold back protection.
         
         Property is UNTESTED.
         """,
         validator=strict_discrete_set,
-        values={"on": 1, "off": 0},
-        map_values=True
+        values=["ON", "OFF"]
     )
 
     foldback_delay = Instrument.control(
@@ -354,16 +363,15 @@ class TDK_Lambda_Base(Instrument):
     )
 
     auto_restart = Instrument.control(
-        "AST?", "AST %d",
+        "AST?", "AST %s",
         """Control the auto restart mode. 
         
-        Valid values are ``on`` and ``off``.
+        Valid values are ``ON`` and ``OFF``.
         
         Property is UNTESTED.
         """,
         validator=strict_discrete_set,
-        values={"on": 1, "off": 0},
-        map_values=True
+        values=["ON", "OFF"]
     )
 
     save = Instrument.setting(
