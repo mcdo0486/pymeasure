@@ -62,10 +62,10 @@ class TDK_Lambda_Base(Instrument):
     # Initializer and important communication methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def __init__(self, adapter, address, name="TDK-Lambda Base", **kwargs):
+    def __init__(self, adapter, address, **kwargs):
         super().__init__(
             adapter,
-            name=name,
+            name="TDK-Lambda Base",
             includeSCPI=False,
             asrl={'read_termination': "\r", 'write_termination': "\r"},
             **kwargs
@@ -73,29 +73,38 @@ class TDK_Lambda_Base(Instrument):
         self.address = address
 
     def write(self, command):
-        """Writes a command to the instrument
-        "OK\r"
-        When writing a query to the instrument, the value is returned just fine.
-        WHen writing a value to the instrument, it returns "OK\r"
-        If this returned value is not stripped out, then there will be a lot of
-        "OK\r" in the read buffer.
+        """Modifies the self.write() method to strip out an "OK" command that
+        the instrument returns for any non-querying commands.
 
-        Because we may get a value in return, we will use self.ask() to do an
-        additional read.
+        By default, any non-querying commands (i.e., a command that does NOT
+        have the "?" symbol in it, a.k.a. a "setting" in PyMeasure syntax) will
+        automatically return an "OK" reply. This is done to confirm that the
+        instrument has received the command. Any querying commands (i.e., a
+        command that does have the "?" symbol in it, a.k.a. a "measurement" in
+        PyMeasure syntax) by definition will return a value. The returned value
+        itself is confirmation that the command was received.
 
-        :param command: SCPI command string to be sent to the instrument
+        The default, the instrument.write() method is not set up to
+        automatically strip out  this "OK" for non-querying commands. This
+        modification will run the self.ask() method to remove the "OK"
+        command from the VISA read buffer. If this is not done, the VISA read
+        buffer will hold numerous "OK" commands until the next read command
+        is given.
+
+        :param command: Command string to be sent to the instrument.
         """
 
         self.ask(command)
 
     def ask(self, command):
-        """
-        CommonBase.ask(command) uses the self.write() function. We need to not
-        Because self.write() returns self.ask(), we need to overwrite that
-        function to get out of an infinite loop.
+        """Modifies the self.ask() method to NOT use the self.write() method,
+        but instead to use the self.adapter.connection.query() command.
 
+        This modification is a result due to the .write() method modification.
+        Because self.write() now returns self.ask(), the .ask() method goes
+        into an infinite loop is this modification is not implemented.
 
-        #     :param command: SCPI command string to be sent to the instrument
+        :param command: Command string to be sent to the instrument
         """
         return self.adapter.connection.query(command)
 

@@ -38,11 +38,30 @@ class TDK_Gen80_65(TDK_Lambda_Base):
     Represents the TDK Lambda Genesys 80-65 DC power supply. Class inherits
     commands from the TDK_Lambda_Base parent class and utilizes dynamic
     properties adjust valid values on various properties.
+
+    .. code-block:: python
+    psu = TDK_Gen80_65("COM3", 6)       # COM port and daisy-chain address
+    psu.remote = "REM"                  # PSU in remote mode
+    psu.source_output = "ON"            # Turn on output
+    psu.ramp_to_current(2.0)            # Ramp to 2.0 A of current
+    print(psu.actual_current)           # Measure actual PSU current
+    print(psu.actual_voltage)           # Measure actual PSU voltage
+    psu.shutdown()                      # Run shutdown command
+
     """
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Dynamic values - Overrides base class validator values
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     voltage_values = [0, 80]
     current_values = [0, 65]
     over_voltage_values = [5, 88]
     under_voltage_values = [0, 76]
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Initializer
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __init__(self, adapter, address, **kwargs):
         super().__init__(
