@@ -22,7 +22,6 @@
 # THE SOFTWARE.
 #
 
-
 # =============================================================================
 # Field Sweep Procedure File
 # =============================================================================
@@ -50,7 +49,8 @@ from pymeasure.log import console_log
 
 from time import sleep
 import logging
-import tempfile
+import sys
+
 # =============================================================================
 # Logging
 # =============================================================================
@@ -62,14 +62,13 @@ if log.hasHandlers():
 
 log.addHandler(logging.NullHandler())
 
-
 # =============================================================================
 # Procedure class
 # =============================================================================
 
 
 class TempDiagnostic(Procedure):
-    """ Class that implements the field sweep. Child class of Procedure."""
+    """ Class that implements the Lakeshore 211 diagnostic test procedure."""
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Measurement Parameters
@@ -94,15 +93,11 @@ class TempDiagnostic(Procedure):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def startup(self):
-        """Starts up instruments for measurement.
+        """Starts up the diagnostic test."""
 
-        Reads the current list, configures Genesys power supply, configures the
-        BraunBox, configures SR 7225 lock-in amplifier, configures
-        Lakeshore 211 temperature monitor, and configures FW Bell 5080.
-        """
-
-        log.info("Startup function initiated")
+        log.info("\nStartup function initiated")
         log.info("Reticulating splines")
+        print("\n", file=sys.stderr)
 
         # Lakeshore 211 setup
         log.info("Lakeshore 211 setup: start")
@@ -114,60 +109,72 @@ class TempDiagnostic(Procedure):
         log.info("Lakeshore 211 setup: complete!")
 
         log.info("Startup complete!")
+        print("\n", file=sys.stderr)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Execute method
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def execute(self):
-        """Perform field sweep measurement.
+        """Begin diagnostic test."""
 
-        Loops through field current values and measures the induced voltage.
-        """
+        # Basic communication check: ID query
         log.info("Begin diagnostics")
-        log.info("Does the following line resemble 'LSCI,MODEL211,2110814,040202'")
+        log.info("Does the following line resemble "
+                 "'LSCI,MODEL211,2110814,040202'?")
         log.info(self.lakeshore.id)
+        print("\n", file=sys.stderr)
+        sleep(10)
 
-        log.info("""Does the Lakeshore 211 show Celsius as the units?
-         Check front panel within 10 seconds""")
+        # Units check
+        log.info("""Does the Lakeshore 211 show Celsius as the units? 
+         Check front panel within 10 seconds.""")
         self.lakeshore.display_units = "celsius"
         sleep(10)
-
-        log.info("""Does the Lakeshore 211 display unit show celsius?""")
-        log.info(self.lakeshore.display_units)
-
-        log.info("""Reading current temperature in Celsius""")
-        temp = self.lakeshore.temperature_celsius
-        log.info(f"Does the Lakeshore 211 front panel show the approximate temperature? {temp}")
+        units = self.lakeshore.display_units
+        log.info(f"""Does the Lakeshore 211 is reporting that the current 
+        units is {units}. Is this correct?""")
+        print("\n", file=sys.stderr)
         sleep(10)
 
+        # Temperature reading
+        log.info("""The Lakeshore 211 will now read the current temperature 
+        in Celsius.""")
+        temp = self.lakeshore.temperature_celsius
+        log.info(f"""Does the Lakeshore 211 front panel show the temperature to
+        be approximately {temp} C?""")
+        print("\n", file=sys.stderr)
+        sleep(10)
+
+        # Switch to Kelvin
         log.info("""Does the Lakeshore 211 show Kelvin as the units?
-                 Check front panel within 10 seconds""")
+        Check front panel within 10 seconds.""")
         self.lakeshore.display_units = "kelvin"
         sleep(10)
-
-        log.info("""Reading current temperature in Kelvin""")
         temp = self.lakeshore.temperature_kelvin
-
-        log.info(f"Does the Lakeshore 211 front panel show the approximate temperature? {temp}")
+        log.info(f"""Does the Lakeshore 211 front panel show the temperature to
+        be approximately {temp} K?""")
+        print("\n", file=sys.stderr)
         sleep(10)
-
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Shutdown method
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def shutdown(self):
-        """Shuts down the measurement.
-        """
+        """Shuts down the measurement."""
+
+        log.info("Lakeshore 211 shutdown: start")
         self.lakeshore.shutdown()
+        log.info("SR 7225 shutdown: complete!")
         log.info("Program complete! Have a good day!")
 
 
 if __name__ == "__main__":
-    # =============================================================================
+
+    # =========================================================================
     # Logging
-    # =============================================================================
+    # =========================================================================
 
     log = logging.getLogger(__name__)
 
@@ -179,9 +186,9 @@ if __name__ == "__main__":
     scribe = console_log(log)
     scribe.start()
 
-    # =============================================================================
+    # =========================================================================
     # Main Program
-    # =============================================================================
+    # =========================================================================
 
     procedure = TempDiagnostic()
     procedure.lakeshore_address = "COM3"
@@ -190,7 +197,6 @@ if __name__ == "__main__":
     results = Results(procedure,  file_name)
     worker = Worker(results)
     worker.start()
-
 
     worker.join(timeout=3600)  # wait at most 1 hr (3600 sec)
     scribe.stop()
