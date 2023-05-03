@@ -28,6 +28,7 @@
 
 from .tdk_base import TDK_Lambda_Base
 
+
 # =============================================================================
 # Instrument file
 # =============================================================================
@@ -63,10 +64,11 @@ class TDK_Gen80_65(TDK_Lambda_Base):
     # Initializer
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def __init__(self, adapter, address, **kwargs):
+    def __init__(self, adapter, name="TDK Lambda Gen80-65", address=6,
+                 **kwargs):
         super().__init__(
             adapter,
+            name,
             address,
-            name="TDK Lambda Gen80-65",
             **kwargs
         )
