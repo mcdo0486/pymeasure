@@ -93,32 +93,31 @@ class TDK_Lambda_Base(Instrument):
         confirmation that the command was received.
 
         The default, the ``Instrument.write()`` method is not set up to
-        automatically strip out instrument confirmations. This method passes
-        on the command to the ``self.ask()`` which queries the instrument which
-        reads out the "OK" reply from the read buffer. If this is not done, the
-        adapter read buffer will hold the "OK" reply until the next read command
-        is given.
+        automatically strip out instrument confirmations. If the command
+        string does not contain a "?", then ``self.read()`` once to clear the
+        "OK" from the read buffer. If this is not done, the adapter read buffer
+        will hold the "OK" reply until the next read command is given.
 
         :param command: Command string to be sent to the instrument.
         """
 
-        self.ask(command)
-
-    def ask(self, command):
-        """Replace the ``Instrument.ask()`` with the
-        ``self.adapter.connection.query()`` command.
-
-        By default the ``Instrument.ask()`` method calls ``Instrument.write()``,
-        which would cause an infinite loop with the modifications to
-        ``self.write()``.
-
-        :param command: Command string to be sent to the instrument
-        """
-        return self.adapter.connection.query(command)
+        super().write(command)
+        if '?' not in command:
+            # clear "OK" from the adapter read buffer
+            self.read()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Properties
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    address = Instrument.setting(
+        "ADR %d",
+        """Set the address of the power supply.
+
+        Valid values are integers between 0 - 30 (inclusive).""",
+        validator=strict_discrete_set,
+        values=list(range(0, 31))
+    )
 
     remote = Instrument.control(
         "RMT?", "RMT %s",
@@ -161,7 +160,7 @@ class TDK_Lambda_Base(Instrument):
         """
     )
 
-    identity = Instrument.measurement(
+    id = Instrument.measurement(
         "IDN?",
         """Measure the identity of the instrument.
         
