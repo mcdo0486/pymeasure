@@ -21,14 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
-import pytest
-
 from pymeasure.test import expected_protocol
-from contextlib import contextmanager
-
 from pymeasure.instruments.tdk.tdk_base import TDK_Lambda_Base
-from pymeasure.instruments.tdk.tdk_gen40_38 import TDK_Gen40_38
 
 
 def test_init():
@@ -56,8 +50,9 @@ def test_remote():
             [(b"ADR 6", b"OK"),
              (b"RMT?", b"REM"),
              (b"RMT LOC", b"OK"),
-             (b"RMT?", b"LOC"),]
+             (b"RMT?", b"LOC"), ]
     ) as instr:
         assert instr.remote == "REM"
         instr.remote = 'LOC'
         assert instr.remote == "LOC"
+

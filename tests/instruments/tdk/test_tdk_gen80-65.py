@@ -25,7 +25,6 @@
 import pytest
 
 from pymeasure.test import expected_protocol
-
 from pymeasure.instruments.tdk.tdk_gen80_65 import TDK_Gen80_65
 
 
@@ -58,6 +57,7 @@ def test_invalid_voltage():
                  (b"PV 160", b"OK"), ]
         ) as instr:
             instr.voltage = 160
+
 
 def test_invalid_current():
     with pytest.raises(ValueError):

@@ -41,14 +41,14 @@ class TDK_Gen40_38(TDK_Lambda_Base):
     properties adjust valid values on various properties.
 
     .. code-block:: python
-    psu = TDK_Gen40_38("COM3", 6)       # COM port and daisy-chain address
-    psu.remote = "REM"                  # PSU in remote mode
-    psu.source_output = "ON"            # Turn on output
-    psu.ramp_to_current(2.0)            # Ramp to 2.0 A of current
-    print(psu.actual_current)           # Measure actual PSU current
-    print(psu.actual_voltage)           # Measure actual PSU voltage
-    psu.shutdown()                      # Run shutdown command
 
+        psu = TDK_Gen40_38("COM3", 6)       # COM port and daisy-chain address
+        psu.remote = "REM"                  # PSU in remote mode
+        psu.source_output = "ON"            # Turn on output
+        psu.ramp_to_current(2.0)            # Ramp to 2.0 A of current
+        print(psu.actual_current)           # Measure actual PSU current
+        print(psu.actual_voltage)           # Measure actual PSU voltage
+        psu.shutdown()                      # Run shutdown command
     """
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

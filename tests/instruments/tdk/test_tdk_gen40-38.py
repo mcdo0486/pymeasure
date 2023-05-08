@@ -59,6 +59,7 @@ def test_invalid_voltage():
         ) as instr:
             instr.voltage = 60
 
+
 def test_invalid_current():
     with pytest.raises(ValueError):
         with expected_protocol(

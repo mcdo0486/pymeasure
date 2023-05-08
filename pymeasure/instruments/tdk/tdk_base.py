@@ -116,13 +116,13 @@ class TDK_Lambda_Base(Instrument):
 
         Valid values are integers between 0 - 30 (inclusive).""",
         validator=strict_discrete_set,
-        values=list(range(0, 31))
+        values=range(0, 31)
     )
 
     remote = Instrument.control(
         "RMT?", "RMT %s",
-        """Control remote operation of the power supply.
-        
+        """Get the current remote operation of the power supply.
+
         Valid values are ``'LOC'`` for local mode, ``'REM'`` for remote mode,
         and ``'LLO'`` for local lockout mode.
         """,
@@ -132,22 +132,20 @@ class TDK_Lambda_Base(Instrument):
 
     multidrop_capability = Instrument.measurement(
         "MDAV?",
-        """Measure to see if the multi-drop option is available on the power
-        supply. 
-        
-        If return value is 0, the option is not available, if 1 it is 
-        available.
-        
+        """Get the multi-drop option is available on the power supply.
+
+        If return value is 0, the option is not available, if 1 it is available.
+
         Property is UNTESTED.
         """
     )
 
     master_slave_setting = Instrument.measurement(
         "MS?",
-        """Measure the master and slave settings. 
-        
+        """Get the master and slave settings.
+
         Possible master return values are 1, 2, 3, and 4. The slave value is 0.
-        
+
         Property is UNTESTED.
         """
     )
@@ -155,40 +153,39 @@ class TDK_Lambda_Base(Instrument):
     repeat = Instrument.measurement(
         "\\",
         """Measure the last command again.
-        
-        Returns the last command.
+
+        Returns output of the last command.
         """
     )
 
     id = Instrument.measurement(
         "IDN?",
-        """Measure the identity of the instrument.
-        
-        Returns a list of instrument manufacturer and model in the format:
-        ``["LAMBDA", "GENX-Y"]``
+        """Get the identity of the instrument.
+
+        Returns a list of instrument manufacturer and model in the format: ``["LAMBDA", "GENX-Y"]``
         """
     )
 
     version = Instrument.measurement(
         "REV?",
-        """Measure the software version on instrument.
-        
+        """Get the software version on instrument.
+
         Returns the software version as an ASCII string.
         """
     )
 
     serial = Instrument.measurement(
         "SN?",
-        """Measure the serial number of the instrument.
-        
+        """Get the serial number of the instrument.
+
         Returns the serial number of of the instrument as an ASCII string.
         """
     )
 
     last_test_date = Instrument.measurement(
         "DATE?",
-        """Measure the date of the last test, possibly calibration date.
-        
+        """Get the date of the last test, possibly calibration date.
+
         Returns a string in the format: yyyy/mm/dd.
         """
     )
@@ -217,7 +214,7 @@ class TDK_Lambda_Base(Instrument):
     actual_current = Instrument.measurement(
         "MC?",
         """Measure the actual output current.
-        
+
         Returns a float with five digits of precision.
         """
     )
@@ -225,7 +222,7 @@ class TDK_Lambda_Base(Instrument):
     mode = Instrument.measurement(
         "MODE?",
         """Measure the output mode of the power supply.
-        
+
         When power supply is on, the returned value will be either ``'CV'`` for
         control voltage or ``'CC'`` for or control current. If the power supply
         is off, the returned value will be ``'OFF'``.
@@ -234,20 +231,20 @@ class TDK_Lambda_Base(Instrument):
 
     display = Instrument.measurement(
         "DVC?",
-        """Measure the display voltage and current.
-        
-        Returns the measured voltage, programmed voltage, measured current,
-        programmed current, over voltage set point, and under voltage set point 
-        as a list of floating point numbers.
+        """Get the displayed voltage and current.
+
+        Returns a list of floating point numbers in the order of [ measured voltage,
+        programmed voltage, measured current, programmed current, over voltage set point,
+        under voltage set point ].
         """
     )
 
     status = Instrument.measurement(
         "STT?",
-        """Measure the power supply status.
-        
-        Returns a list in the order of [ actual voltage 
-        (MV), the programmed voltage (PV), the actual current (MC), the 
+        """Get the power supply status.
+
+        Returns a list in the order of [ actual voltage
+        (MV), the programmed voltage (PV), the actual current (MC), the
         programmed current (PC), the status register (SR), and the fault
         register (FR) ].
         """
@@ -257,7 +254,7 @@ class TDK_Lambda_Base(Instrument):
         "FILTER?", "FILTER %d",
         """Control the low pass filter frequency of the A to D converter
         for voltage and current measurement.
-        
+
         Valid frequency values are 18, 23, or 46 Hz. Default value is 18 Hz.
         """,
         validator=strict_discrete_set,
@@ -267,8 +264,8 @@ class TDK_Lambda_Base(Instrument):
     source_output = Instrument.control(
         "OUT?", "OUT %s",
         """Control the output of the power supply.
-        
-        Valid values are ``'ON'`` and ``'OFF'``. 
+
+        Valid values are ``'ON'`` and ``'OFF'``.
         """,
         validator=strict_discrete_set,
         values=["ON", "OFF"]
@@ -277,7 +274,7 @@ class TDK_Lambda_Base(Instrument):
     foldback = Instrument.control(
         "FLD?", "FLD %s",
         """Control the fold back protection of the power supply.
-        
+
         Valid values are ``'ON'`` to arm the fold back protection and ``'OFF'``
         to cancel the fold back protection.
         """,
@@ -288,9 +285,9 @@ class TDK_Lambda_Base(Instrument):
     foldback_delay = Instrument.control(
         "FBD?", "FBD %g",
         """Control the fold back delay.
-         
-        Adds an additional delay to the standard fold back delay (250 ms) by 
-        multiplying the set value by 0.1. Valid values are integers between 
+
+        Adds an additional delay to the standard fold back delay (250 ms) by
+        multiplying the set value by 0.1. Valid values are integers between
         0 to 255.
         """,
         validator=strict_range,
@@ -310,7 +307,7 @@ class TDK_Lambda_Base(Instrument):
     under_voltage = Instrument.control(
         "UVL?", "UVL %g",
         """Control the under voltage limit.
-        
+
         Property is UNTESTED.
         """,
         validator=lambda v, vs: strict_discrete_range(v, vs, step=0.01),
@@ -320,8 +317,8 @@ class TDK_Lambda_Base(Instrument):
 
     auto_restart = Instrument.control(
         "AST?", "AST %s",
-        """Control the auto restart mode. 
-        
+        """Control the auto restart mode.
+
         Valid values are ``'ON'`` and ``'OFF'``.
         """,
         validator=strict_discrete_set,
