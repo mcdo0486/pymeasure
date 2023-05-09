@@ -50,12 +50,9 @@ log.addHandler(logging.NullHandler())
 class TDK_Lambda_Base(Instrument):
     """
     This is the base class for TDK Lambda Genesys Series DC power supplies.
-
     Do not directly instantiate an object with this class. Use one of the
     TDK-Lambda power supply instrument classes that inherit from this parent
-    class.
-
-    Untested commands are noted in docstrings.
+    class. Untested commands are noted in docstrings.
     """
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,14 +60,6 @@ class TDK_Lambda_Base(Instrument):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __init__(self, adapter, name="TDK-Lambda Base", address=6, **kwargs):
-        """
-        The initialization of a TDK instrument requires the current address
-        of the TDK power supply. The default address for the TDK Lambda is 6.
-
-        :param adapter: VISAAdapter instance
-        :param name: Instrument name
-        :param address: Serial port daisy chain number. Default is 6.
-        """
         super().__init__(
             adapter,
             name,
@@ -80,31 +69,21 @@ class TDK_Lambda_Base(Instrument):
         )
         self.address = address
 
-    def write(self, command):
-        """Replace the ``Instrument.write()`` method to strip out an "OK" reply
-        that the instrument returns for any non-querying commands.
-
-        By default, any non-querying commands (i.e., a command that does NOT
-        have the "?" symbol in it like the instrument command "PV 10") will
-        automatically return an "OK" reply. This is done to confirm that the
-        instrument has received the command. Any querying commands (i.e., a
-        command that does have the "?" symbol in it like the instrument command
-        "PV?") will return the requested value. The returned value itself is
-        confirmation that the command was received.
-
-        The default, the ``Instrument.write()`` method is not set up to
-        automatically strip out instrument confirmations. If the command
-        string does not contain a "?", then ``self.read()`` once to clear the
-        "OK" from the read buffer. If this is not done, the adapter read buffer
-        will hold the "OK" reply until the next read command is given.
-
-        :param command: Command string to be sent to the instrument.
+    def check_errors(self):
         """
+        Only use this command for setting commands, i.e. non-querying commands.
 
-        super().write(command)
-        if '?' not in command:
-            # clear "OK" from the adapter read buffer
-            self.read()
+        Any non-querying commands (i.e., a command that does NOT
+        have the "?" symbol in it like the instrument command "PV 10") will
+        automatically return an "OK" reply for valid command or an error code.
+        This is done to confirm that the instrument has received the command.
+        Any querying commands (i.e., a command that does have the "?" symbol
+        in it like the instrument command "PV?") will return the requested value,
+        not the confirmation.
+        """
+        response = self.read()
+        if response != "OK":
+            log.error(f"Received error: {response}")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Properties
@@ -115,17 +94,19 @@ class TDK_Lambda_Base(Instrument):
         """Set the address of the power supply.
 
         Valid values are integers between 0 - 30 (inclusive).""",
+        check_set_errors=True,
         validator=strict_discrete_set,
         values=range(0, 31)
     )
 
     remote = Instrument.control(
         "RMT?", "RMT %s",
-        """Get the current remote operation of the power supply.
+        """Control the current remote operation of the power supply.
 
         Valid values are ``'LOC'`` for local mode, ``'REM'`` for remote mode,
         and ``'LLO'`` for local lockout mode.
         """,
+        check_set_errors=True,
         validator=strict_discrete_set,
         values=["LOC", "REM", "LLO"]
     )
@@ -193,6 +174,7 @@ class TDK_Lambda_Base(Instrument):
     voltage = Instrument.control(
         "PV?", "PV %g",
         """Control the programmed (set) output voltage.""",
+        check_set_errors=True,
         validator=lambda v, vs: strict_discrete_range(v, vs, step=0.01),
         values=[0, 40],
         dynamic=True
@@ -206,6 +188,7 @@ class TDK_Lambda_Base(Instrument):
     current = Instrument.control(
         "PC?", "PC %g",
         """Control the programmed (set) output current.""",
+        check_set_errors=True,
         validator=lambda v, vs: strict_discrete_range(v, vs, step=0.01),
         values=[0, 38],
         dynamic=True
@@ -257,29 +240,34 @@ class TDK_Lambda_Base(Instrument):
 
         Valid frequency values are 18, 23, or 46 Hz. Default value is 18 Hz.
         """,
+        check_set_errors=True,
         validator=strict_discrete_set,
         values=[18, 23, 46]
     )
 
-    source_output = Instrument.control(
+    output_enabled = Instrument.control(
         "OUT?", "OUT %s",
         """Control the output of the power supply.
 
-        Valid values are ``'ON'`` and ``'OFF'``.
+        Valid values are ``True`` and ``False``.
         """,
+        check_set_errors=True,
         validator=strict_discrete_set,
-        values=["ON", "OFF"]
+        values={True: "ON", False: "OFF"},
+        map_values=True
     )
 
     foldback = Instrument.control(
         "FLD?", "FLD %s",
         """Control the fold back protection of the power supply.
 
-        Valid values are ``'ON'`` to arm the fold back protection and ``'OFF'``
+        Valid values are ``True`` to arm the fold back protection and ``False``
         to cancel the fold back protection.
         """,
+        check_set_errors=True,
         validator=strict_discrete_set,
-        values=["ON", "OFF"]
+        values={True: "ON", False: "OFF"},
+        map_values=True
     )
 
     foldback_delay = Instrument.control(
@@ -290,6 +278,7 @@ class TDK_Lambda_Base(Instrument):
         multiplying the set value by 0.1. Valid values are integers between
         0 to 255.
         """,
+        check_set_errors=True,
         validator=strict_range,
         values=[0, 255],
         cast=int
@@ -299,6 +288,7 @@ class TDK_Lambda_Base(Instrument):
         "OVP?", "OVP %g",
         """Control the over voltage protection.
         """,
+        check_set_errors=True,
         validator=lambda v, vs: strict_discrete_range(v, vs, step=0.01),
         values=[2, 44],
         dynamic=True
@@ -310,6 +300,7 @@ class TDK_Lambda_Base(Instrument):
 
         Property is UNTESTED.
         """,
+        check_set_errors=True,
         validator=lambda v, vs: strict_discrete_range(v, vs, step=0.01),
         values=[0, 38],
         dynamic=True
@@ -319,10 +310,12 @@ class TDK_Lambda_Base(Instrument):
         "AST?", "AST %s",
         """Control the auto restart mode.
 
-        Valid values are ``'ON'`` and ``'OFF'``.
+        Valid values are ``True`` and ``False``.
         """,
+        check_set_errors=True,
         validator=strict_discrete_set,
-        values=["ON", "OFF"]
+        values={True: "ON", False: "OFF"},
+        map_values=True
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -332,10 +325,12 @@ class TDK_Lambda_Base(Instrument):
     def clear(self):
         """Clear FEVE and SEVE registers to zero."""
         self.write("CLS")
+        self.check_errors()
 
     def reset(self):
         """Reset the instrument to default values."""
         self.write("RST")
+        self.check_errors()
 
     def foldback_reset(self):
         """Reset the fold back delay to 0 s, restoring the standard 250 ms
@@ -344,20 +339,24 @@ class TDK_Lambda_Base(Instrument):
         Property is UNTESTED.
         """
         self.write("FDBRST")
+        self.check_errors()
 
     def save(self):
         """Save current instrument settings."""
         self.write("SAV")
+        self.check_errors()
 
     def recall(self):
         """Recall last saved instrument settings."""
         self.write("RCL")
+        self.check_errors()
 
     def set_max_over_voltage(self):
         """Set the over voltage protection to the maximum level for the power
         supply.
         """
         self.write("OVM")
+        self.check_errors()
 
     def ramp_to_current(self, target_current, steps=20, pause=0.2):
         """Ramps to a target current from the set current value over
@@ -382,6 +381,5 @@ class TDK_Lambda_Base(Instrument):
         """
         log.info("Shutting down %s." % self.name)
         self.ramp_to_current(0.0)
-        self.source_output = "OFF"
-        log.info("%s has been shut down." % self.name)
+        self.output_enabled = False
         super().shutdown()
