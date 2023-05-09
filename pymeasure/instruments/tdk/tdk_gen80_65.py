@@ -22,23 +22,60 @@
 # THE SOFTWARE.
 #
 
+# =============================================================================
+# Libraries / modules
+# =============================================================================
+
 from .tdk_base import TDK_Lambda_Base
+
+
+# =============================================================================
+# Instrument file
+# =============================================================================
 
 
 class TDK_Gen80_65(TDK_Lambda_Base):
     """
-    This is the class for the TDK Lambda Genesys 80-65 with builtin voltage
-    and current ranges and limits
+    Represents the TDK Lambda Genesys 80-65 DC power supply. Class inherits
+    commands from the TDK_Lambda_Base parent class and utilizes dynamic
+    properties adjust valid values on various properties.
+
+    .. code-block:: python
+
+        psu = TDK_Gen80_65("COM3", 6)       # COM port and daisy-chain address
+        psu.remote = "REM"                  # PSU in remote mode
+        psu.source_output = "ON"            # Turn on output
+        psu.ramp_to_current(2.0)            # Ramp to 2.0 A of current
+        print(psu.actual_current)           # Measure actual PSU current
+        print(psu.actual_voltage)           # Measure actual PSU voltage
+        psu.shutdown()                      # Run shutdown command
+
+    The initialization of a TDK instrument requires the current address
+    of the TDK power supply. The default address for the TDK Lambda is 6.
+
+    :param adapter: VISAAdapter instance
+    :param name: Instrument name. Default is "TDK Lambda Gen80-65"
+    :param address: Serial port daisy chain number. Default is 6.
     """
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Dynamic values - Overrides base class validator values
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     voltage_values = [0, 80]
     current_values = [0, 65]
     over_voltage_values = [5, 88]
     under_voltage_values = [0, 76]
 
-    def __init__(self, adapter, address, **kwargs):
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Initializer
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def __init__(self, adapter, name="TDK Lambda Gen80-65", address=6,
+                 **kwargs):
         super().__init__(
             adapter,
+            name,
             address,
-            name="TDK Lambda Gen80-65",
             **kwargs
         )

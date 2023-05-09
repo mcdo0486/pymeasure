@@ -22,22 +22,64 @@
 # THE SOFTWARE.
 #
 
-import logging
+# =============================================================================
+# Libraries / modules
+# =============================================================================
 
 from .dsp_base import DSPBase
+import logging
+
+# =============================================================================
+# Logging
+# =============================================================================
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
+# =============================================================================
+# Instrument file
+# =============================================================================
+
+
 class DSP7225(DSPBase):
+    """Represents the Signal Recovery DSP 7225 lock-in amplifier.
+
+    Class inherits commands from the DSPBase parent class and utilizes dynamic
+    properties for various properties.
+
+    .. code-block:: python
+
+        lockin7225 = DSP7225("GPIB0::12::INSTR")
+        lockin7225.imode = "voltage mode"       # Set to measure voltages
+        lockin7225.reference = "internal"       # Use internal oscillator
+        lockin7225.fet = 1                      # Use FET pre-amp
+        lockin7225.shield = 0                   # Ground shields
+        lockin7225.coupling = 0                 # AC input coupling
+        lockin7225.time_constant = 0.10         # Filter time set to 100 ms
+        lockin7225.sensitivity = 2E-3           # Sensitivity set to 2 mV
+        lockin7225.frequency = 100              # Set oscillator frequency to 100 Hz
+        lockin7225.voltage = 1                  # Set oscillator amplitude to 1 V
+        lockin7225.gain = 20                    # Set AC gain to 20 dB
+        print(lockin7225.x)                     # Measure X channel voltage
+        lockin7225.shutdown()                    # Instrument shutdown
+    """
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Dynamic values - Override base class validator values
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     frequency_values = [0.001, 1.2e5]
     harmonic_values = [1, 32]
     curve_buffer_bit_values = [1, 65535]
 
-    def __init__(self, adapter, **kwargs):
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Initializer
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def __init__(self, adapter, name="Signal Recovery DSP 7225", **kwargs):
         super().__init__(
             adapter,
-            name="Signal Recovery DSP 7225",
+            name,
             **kwargs
         )

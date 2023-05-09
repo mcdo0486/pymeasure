@@ -21,10 +21,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+from pymeasure.test import expected_protocol
+from pymeasure.instruments.tdk.tdk_base import TDK_Lambda_Base
 
-from .anritsuMG3692C import AnritsuMG3692C
-from .anritsuMS9710C import AnritsuMS9710C
-from .anritsuMS9740A import AnritsuMS9740A
-from .anritsuMS2090A import AnritsuMS2090A
-from .anritsuMS464xB import AnritsuMS464xB, AnritsuMS4642B, AnritsuMS4644B,\
-    AnritsuMS4645B, AnritsuMS4647B
+
+def test_init():
+    with expected_protocol(
+            TDK_Lambda_Base,
+            [(b"ADR 6", b"OK")],
+    ):
+        pass  # Verify the expected communication.
+
+
+def test_identity():
+    with expected_protocol(
+            TDK_Lambda_Base,
+            [(b"ADR 6", b"OK"),
+             (b"IDN?", b'LAMBDA,GENX-Y'),
+             (b"REV?", b"REV:1U:4.3")]
+    ) as instr:
+        assert instr.id == ["LAMBDA", "GENX-Y"]
+        assert instr.version == "REV:1U:4.3"
+
+
+def test_remote():
+    with expected_protocol(
+            TDK_Lambda_Base,
+            [(b"ADR 6", b"OK"),
+             (b"RMT?", b"REM"),
+             (b"RMT LOC", b"OK"),
+             (b"RMT?", b"LOC"), ]
+    ) as instr:
+        assert instr.remote == "REM"
+        instr.remote = 'LOC'
+        assert instr.remote == "LOC"
+

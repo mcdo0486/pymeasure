@@ -22,9 +22,48 @@
 # THE SOFTWARE.
 #
 
-from .anritsuMG3692C import AnritsuMG3692C
-from .anritsuMS9710C import AnritsuMS9710C
-from .anritsuMS9740A import AnritsuMS9740A
-from .anritsuMS2090A import AnritsuMS2090A
-from .anritsuMS464xB import AnritsuMS464xB, AnritsuMS4642B, AnritsuMS4644B,\
-    AnritsuMS4645B, AnritsuMS4647B
+import pytest
+
+from pymeasure.test import expected_protocol
+from pymeasure.instruments.tdk.tdk_gen80_65 import TDK_Gen80_65
+
+
+def test_init():
+    with expected_protocol(
+            TDK_Gen80_65,
+            [(b"ADR 6", b"OK")],
+    ):
+        pass  # Verify the expected communication.
+
+
+@pytest.mark.parametrize("volt",
+                         (b"10", b"20", b"40"))
+def test_voltages(volt):
+    with expected_protocol(
+            TDK_Gen80_65,
+            [(b"ADR 6", b"OK"),
+             (b"PV " + volt, b"OK"),
+             (b"PV?", volt)]
+    ) as instr:
+        instr.voltage = float(volt)
+        assert instr.voltage == float(volt)
+
+
+def test_invalid_voltage():
+    with pytest.raises(ValueError):
+        with expected_protocol(
+                TDK_Gen80_65,
+                [(b"ADR 6", b"OK"),
+                 (b"PV 160", b"OK"), ]
+        ) as instr:
+            instr.voltage = 160
+
+
+def test_invalid_current():
+    with pytest.raises(ValueError):
+        with expected_protocol(
+                TDK_Gen80_65,
+                [(b"ADR 6", b"OK"),
+                 (b"PC 150", b"OK"), ]
+        ) as instr:
+            instr.current = 150
