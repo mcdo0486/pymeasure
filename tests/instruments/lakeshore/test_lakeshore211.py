@@ -57,8 +57,8 @@ def test_set_analog():
             [(b"ANALOG 0,1", None),
              (b"ANALOG?", b"0,1")],
     ) as instr:
-        instr.analog = (0, 1)
-        assert instr.analog == (0, 1)
+        instr.analog_configuration = (0, 1)
+        assert instr.analog_configuration == (0, 1)
 
 
 def test_set_display():
@@ -67,5 +67,33 @@ def test_set_display():
             [(b"DISPFLD 1", None),
              (b"DISPFLD?", b"1")],
     ) as instr:
-        instr.display = 'celsius'
-        assert instr.display == 'celsius'
+        instr.display_units = 'celsius'
+        assert instr.display_units == 'celsius'
+
+
+def test_alarms():
+    with expected_protocol(
+            LakeShore211,
+            [(b"ALARM?", b"0,+000.0,+000.0,+00.0,0\r\n"),
+             (b"ALARM 1,300,10,5,0", None),
+             (b"ALARM?", b"1,+300.0,+010.0,+05.0,0\r\n")
+             ],
+    ) as instr:
+        assert instr.get_alarm_status() == {'on': 0, 'high_value': 0.0, 'low_value': 0.0,
+                                            'deadband': 0.0, 'latch': 0}
+        instr.configure_alarm(on=True, high_value=300, low_value=10, deadband=5, latch=False)
+        assert instr.get_alarm_status() == {'on': 1, 'high_value': 300.0, 'low_value': 10.0,
+                                            'deadband': 5.0, 'latch': 0}
+
+
+def test_relays():
+    with expected_protocol(
+            LakeShore211,
+            [(b"RELAY? 1", b"0\r\n"),
+             (b"RELAY 1 2", None),
+             (b"RELAY? 1", b"2\r\n")
+             ],
+    ) as instr:
+        assert instr.get_relay_mode(1) == 0
+        instr.configure_relay(1, 2)
+        assert instr.get_relay_mode(1) == 2
