@@ -44,11 +44,14 @@ class Parameter:
         this argument is ignored.
     """
 
+    _type = None
+
     def __init__(self, name, default=None, ui_class=None, group_by=None, group_condition=True):
         self.name = name
         self._value = default
         self.default = default
         self.ui_class = ui_class
+        self._help_fields = [('units are', 'units'), 'default']
 
         self.group_by = {}
         if isinstance(group_by, dict):
@@ -74,6 +77,20 @@ class Parameter:
     @value.setter
     def value(self, value):
         self._value = value
+
+    @property
+    def cli_args(self):
+        """ helper for command line interface parsing of parameters
+
+        This property returns a list of data to help formatting a command line
+        interface interpreter, the list is composed of the following elements:
+        - index 0: default value
+        - index 1: List of value to format an help string, that is either,
+        the name of the fields to be documented or a tuple with (helps_string,
+        field)
+        - index 2: type
+        """
+        return (self.default, self._help_fields, self._type)
 
     def is_set(self):
         """ Returns True if the Parameter value is set
@@ -102,6 +119,7 @@ class IntegerParameter(Parameter):
     :param ui_class: A Qt class to use for the UI of this parameter
     :param step: int step size for parameter's UI spinbox. If None, spinbox will have step disabled
     """
+    _type = int
 
     def __init__(self, name, units=None, minimum=-1e9, maximum=1e9, step=None, **kwargs):
         super().__init__(name, **kwargs)
@@ -109,6 +127,8 @@ class IntegerParameter(Parameter):
         self.minimum = int(minimum)
         self.maximum = int(maximum)
         self.step = int(step) if step else None
+        self._help_fields.append('minimum')
+        self._help_fields.append('maximum')
 
     @property
     def value(self):
@@ -161,6 +181,8 @@ class BooleanParameter(Parameter):
     :param ui_class: A Qt class to use for the UI of this parameter
     """
 
+    _type = lambda inst, x: bool(eval(x))  # noqa: E731, accept lambda definition
+
     @property
     def value(self):
         if self.is_set():
@@ -202,6 +224,8 @@ class FloatParameter(Parameter):
     :param step: step size for parameter's UI spinbox. If None, spinbox will have step disabled
     """
 
+    _type = float
+
     def __init__(self, name, units=None, minimum=-1e9, maximum=1e9,
                  decimals=15, step=None, **kwargs):
         super().__init__(name, **kwargs)
@@ -210,6 +234,7 @@ class FloatParameter(Parameter):
         self.maximum = maximum
         self.decimals = decimals
         self.step = step
+        self._help_fields.append('decimals')
 
     @property
     def value(self):
@@ -264,10 +289,13 @@ class VectorParameter(Parameter):
     :param ui_class: A Qt class to use for the UI of this parameter
     """
 
+    _type = eval
+
     def __init__(self, name, length=3, units=None, **kwargs):
         super().__init__(name, **kwargs)
         self._length = length
         self.units = units
+        self._help_fields.append('_length')
 
     @property
     def value(self):
@@ -342,6 +370,7 @@ class ListParameter(Parameter):
         else:
             self._choices = None
         self.units = units
+        self._help_fields.append(('choices are', 'choices'))
 
     @property
     def value(self):
