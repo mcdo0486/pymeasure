@@ -34,7 +34,16 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class BrowserItem(QtWidgets.QTreeWidgetItem):
+class BaseBrowserItem(object):
+
+    def setStatus(self, status):
+        raise NotImplementedError('Must be reimplemented by subclasses')
+
+    def setProgress(self, status):
+        raise NotImplementedError('Must be reimplemented by subclasses')
+
+
+class BrowserItem(QtWidgets.QTreeWidgetItem, BaseBrowserItem):
     """ Represent a row in the :class:`~pymeasure.display.browser.Browser` tree widget """
 
     def __init__(self, results, color, parent=None):

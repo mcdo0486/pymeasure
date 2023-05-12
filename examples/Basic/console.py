@@ -24,13 +24,13 @@ from pymeasure.display.console import ManagedConsole
 from pymeasure.display.Qt import QtWidgets
 from pymeasure.display.windows import ManagedWindow
 import logging
+
 log = logging.getLogger('')
 log.addHandler(logging.NullHandler())
 
 
 class TestProcedure(Procedure):
-
-    iterations = IntegerParameter('Loop Iterations', default=100)
+    iterations = IntegerParameter('Loop Iterations', default=10)
     delay = FloatParameter('Delay Time', units='s', default=0.2)
     seed = Parameter('Random Seed', default='12345')
 
@@ -49,7 +49,7 @@ class TestProcedure(Procedure):
             }
             log.debug("Produced numbers: %s" % data)
             self.emit('results', data)
-            self.emit('progress', 100*i/self.iterations)
+            self.emit('progress', 100 * i / self.iterations)
             sleep(self.delay)
             if self.should_stop():
                 log.warning("Catch stop command in procedure")
@@ -81,11 +81,29 @@ class MainWindow(ManagedWindow):
         self.manager.queue(experiment)
 
 
+class MainConsole(ManagedConsole):
+
+    def __init__(self):
+        super().__init__(
+            procedure_class=TestProcedure,
+        )
+
+        self.queue()
+
+    def queue(self):
+        filename = tempfile.mktemp()
+        procedure = TestProcedure()
+        results = Results(procedure, filename)
+        experiment = self.new_experiment(results)
+
+        self.manager.queue(experiment)
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         # If any parameter is passed, the console mode is run
         # This criteria can be changed at user discretion
-        app = ManagedConsole(procedure_class=TestProcedure)
+        app = MainConsole()
     else:
         app = QtWidgets.QApplication(sys.argv)
         window = MainWindow()
