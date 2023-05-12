@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2022 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,10 @@ class CommonBaseTesting(CommonBase):
     """Add read/write methods in order to use the ProtocolAdapter."""
 
     def __init__(self, parent, id=None, *args, **kwargs):
-        super().__init__()
+        print(args, kwargs)
+        if "test" in kwargs:
+            self.test = kwargs.pop("test")
+        super().__init__(*args, **kwargs)
         self.parent = parent
         self.id = id
         self.args = args
@@ -85,7 +88,7 @@ def generic():
 
 class FakeBase(CommonBaseTesting):
     def __init__(self, *args, **kwargs):
-        super().__init__(FakeAdapter())
+        super().__init__(FakeAdapter(), *args, **kwargs)
 
     fake_ctrl = CommonBase.control(
         "", "%d", "docs",
@@ -114,7 +117,14 @@ def fake():
 
 class ExtendedBase(FakeBase):
     # Keep values unchanged, just derive another instrument, e.g. to add more properties
-    pass
+    fake_ctrl2 = CommonBase.control(
+        "", "%d", "docs",
+        validator=strict_range,
+        values=(1, 10),
+        dynamic=True,
+    )
+
+    fake_ctrl2_values = (5, 20)
 
 
 class StrictExtendedBase(ExtendedBase):
@@ -165,6 +175,7 @@ class TestInitWithChildren:
 
     def test_channels(self, parent):
         assert len(parent.channels) == 3
+        assert parent.ch_A == parent.channels['A']
         assert isinstance(parent.ch_A, GenericBase)
 
     def test_analog(self, parent):
@@ -190,6 +201,9 @@ class TestInitWithChildren:
         p2 = Parent(ProtocolAdapter())  # second instance of that class
         assert isinstance(p2.analog[1], GenericBase)  # verify that it worked a second time
 
+    def test_channel_creator_remains_unchanged_as_class_attribute(self, parent):
+        assert isinstance(parent.__class__.channels, CommonBase.ChannelCreator)
+
 
 class TestAddChild:
     """Test the `add_child` method"""
@@ -206,7 +220,7 @@ class TestAddChild:
 
     def test_arguments(self, parent):
         assert parent.channels["A"].id == "A"
-        assert parent.channels["A"].kwargs == {'test': 5}
+        assert parent.channels["A"].test == 5
 
     def test_attribute_access(self, parent):
         assert parent.ch_B == parent.channels["B"]
@@ -255,7 +269,26 @@ class TestRemoveChild:
         assert getattr(parent_without_children, "function", None) is None
 
 
-# Test ChildDescriptor
+class TestInheritanceWithChildren:
+    class InstrumentSubclass(Parent):
+        """Override one channel group, inherit other groups."""
+        function = CommonBase.ChannelCreator(GenericBase, "overridden", prefix=None)
+
+    @pytest.fixture()
+    def parent(self):
+        return self.InstrumentSubclass(ProtocolAdapter())
+
+    def test_inherited_children_are_present(self, parent):
+        assert isinstance(parent.ch_A, GenericBase)
+
+    def test_ChannelCreator_is_replaced_by_channel_collection(self, parent):
+        assert not isinstance(parent.channels, CommonBase.ChannelCreator)
+
+    def test_overridden_child_is_present(self, parent):
+        assert parent.function.id == "overridden"
+
+
+# Test ChannelCreator
 @pytest.mark.parametrize("args, pairs, kwargs", (
     ((Child, ["A", "B"]), [(Child, "A"), (Child, "B")], {'prefix': "ch_"}),
     (((Child, GenericBase, Child), (1, 2, 3)),
@@ -297,11 +330,25 @@ def test_ask_writes_and_reads():
                           ("X,Y,Z", {'cast': str}, ['X', 'Y', 'Z']),
                           ("X.Y.Z", {'separator': '.'}, ['X', 'Y', 'Z']),
                           ("0,5,7.1", {'cast': bool}, [False, True, True]),
-                          ("x5x", {'preprocess_reply': lambda v: v.strip("x")}, [5])
+                          ("x5x", {'preprocess_reply': lambda v: v.strip("x")}, [5]),
+                          ("X,Y,Z", {'maxsplit': 1}, ["X", "Y,Z"]),
+                          ("X,Y,Z", {'maxsplit': 0}, ["X,Y,Z"]),
                           ))
 def test_values(value, kwargs, result):
     cb = CommonBaseTesting(FakeAdapter(), "test")
     assert cb.values(value, **kwargs) == result
+
+
+def test_global_preprocess_reply():
+    with pytest.warns(FutureWarning, match="deprecated"):
+        cb = CommonBaseTesting(FakeAdapter(), preprocess_reply=lambda v: v.strip("x"))
+        assert cb.values("x5x") == [5]
+
+
+def test_values_global_preprocess_reply():
+    cb = CommonBaseTesting(FakeAdapter())
+    cb.preprocess_reply = lambda v: v.strip("x")
+    assert cb.values("x5x") == [5]
 
 
 def test_binary_values(fake):
@@ -507,6 +554,84 @@ def test_control_preprocess_reply_property(dynamic):
     assert type(fake.x) == int
 
 
+def test_control_kwargs_handed_to_values():
+    """Test that kwargs parameters are handed to `values` method."""
+    with pytest.warns(FutureWarning, match="Do not use keyword arguments"):
+        class Fake(FakeBase):
+            x = CommonBase.control(
+                "", "JUNK%d",
+                "",
+                preprocess_reply=lambda v: v.replace('JUNK', ''),
+                cast=int,
+                testing=True,
+            )
+
+            def values(self, cmd, testing=False, **kwargs):
+                self.testing = testing
+                return super().values(cmd, **kwargs)
+
+    fake = Fake()
+    fake.x = 5
+    fake.x
+    assert fake.testing is True
+
+
+def test_control_warning_at_kwargs():
+    """Test whether a control kwarg raises a warning."""
+    with pytest.warns(FutureWarning, match="Do not use keyword arguments"):
+        class Fake(CommonBase):
+            x = CommonBase.control("", "", "", testing=True)
+
+
+def test_measurement_warning_at_kwargs():
+    """Test whether a measurement kwarg raises a warning."""
+    with pytest.warns(FutureWarning, match="Do not use keyword arguments"):
+        class Fake2(CommonBase):
+            x2 = CommonBase.measurement("", "", testing=True)
+
+
+def test_control_parameters_for_values():
+    """Test how to hand a parameter to `values` method."""
+    class Fake(FakeBase):
+        x = CommonBase.control(
+            "", "JUNK%d",
+            "",
+            preprocess_reply=lambda v: v.replace('JUNK', ''),
+            cast=int,
+            values_kwargs={'testing': True},
+        )
+
+        def values(self, cmd, testing=False, **kwargs):
+            self.testing = testing
+            return super().values(cmd, **kwargs)
+
+    fake = Fake()
+    fake.x = 5
+    fake.x
+    assert fake.testing is True
+
+
+def test_measurement_parameters_for_values():
+    """Test how to hand a parameter to `values` method."""
+    class Fake(FakeBase):
+        x = CommonBase.measurement(
+            "JUNK%d",
+            "",
+            preprocess_reply=lambda v: v.replace('JUNK', ''),
+            cast=int,
+            values_kwargs={'testing': True},
+        )
+
+        def values(self, cmd, testing=False, **kwargs):
+            self.testing = testing
+            return super().values(cmd, **kwargs)
+
+    fake = Fake()
+    fake.write("5")
+    fake.x
+    assert fake.testing is True
+
+
 @pytest.mark.parametrize("cast, expected", ((float, 5.5),
                                             (ureg.Quantity, ureg.Quantity(5.5)),
                                             (str, "5.5"),
@@ -516,7 +641,7 @@ def test_measurement_cast(cast, expected):
     class Fake(CommonBaseTesting):
         x = CommonBase.measurement(
             "x", "doc", cast=cast)
-    with expected_protocol(Fake, [("x", "5.5")], name="test") as instr:
+    with expected_protocol(Fake, [("x", "5.5")]) as instr:
         assert instr.x == expected
 
 
@@ -643,6 +768,7 @@ def test_dynamic_property_unchanged_by_inheritance():
 
 
 def test_dynamic_property_strict_raises():
+    # Tests also that dynamic properties can be changed at class level.
     strict = StrictExtendedBase()
 
     with pytest.raises(ValueError):
@@ -692,3 +818,22 @@ def test_dynamic_property_values_update_in_one_instance_leaves_other_unchanged()
 def test_dynamic_property_reading_special_attributes_forbidden(fake):
     with pytest.raises(AttributeError):
         fake.fake_ctrl_validator
+
+
+def test_dynamic_property_with_inheritance():
+    inst = ExtendedBase()
+    # Test for inherited attribute
+    with pytest.raises(AttributeError):
+        inst.fake_ctrl_validator
+    # Test for new attribute
+    with pytest.raises(AttributeError):
+        inst.fake_ctrl2_validator
+
+
+def test_dynamic_property_values_defined_at_superclass_level():
+    """Test whether a dynamic property can be changed a superclass level"""
+    inst = StrictExtendedBase()
+    # Test whether the change of values from (1, 10) to (5, 20) succeeded:
+    inst.fake_ctrl2 = 17  # should raise an error if change unsuccessful
+    with pytest.raises(ValueError):
+        inst.fake_ctrl2 = 2  # should not raise an error if change unsuccessful

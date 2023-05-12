@@ -1,7 +1,7 @@
 #
 # This file is part of the PyMeasure package.
 #
-# Copyright (c) 2013-2022 PyMeasure Developers
+# Copyright (c) 2013-2023 PyMeasure Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -294,11 +294,13 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
             state = item.checkState(0)
             experiment = self.manager.experiments.with_browser_item(item)
             if state == QtCore.Qt.CheckState.Unchecked:
-                for wdg, curve in zip(self.widget_list, experiment.curve_list):
-                    wdg.remove(curve)
+                for curve in experiment.curve_list:
+                    if curve:
+                        curve.wdg.remove(curve)
             else:
-                for wdg, curve in zip(self.widget_list, experiment.curve_list):
-                    wdg.load(curve)
+                for curve in experiment.curve_list:
+                    if curve:
+                        curve.wdg.load(curve)
 
     def browser_item_menu(self, position):
         item = self.browser.itemAt(position)
@@ -383,7 +385,8 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
         self.manager.clear()
 
     def open_experiment(self):
-        dialog = ResultsDialog(self.procedure_class.DATA_COLUMNS, self.x_axis, self.y_axis)
+        dialog = ResultsDialog(self.procedure_class,
+                               widget_list=self.widget_list)
         if dialog.exec():
             filenames = dialog.selectedFiles()
             for filename in map(str, filenames):
@@ -411,8 +414,9 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
             pixelmap = QtGui.QPixmap(24, 24)
             pixelmap.fill(color)
             experiment.browser_item.setIcon(0, QtGui.QIcon(pixelmap))
-            for wdg, curve in zip(self.widget_list, experiment.curve_list):
-                wdg.set_color(curve, color=color)
+            for curve in experiment.curve_list:
+                if curve:
+                    curve.wdg.set_color(curve, color=color)
 
     def open_file_externally(self, filename):
         """ Method to open the datafile using an external editor or viewer. Uses the default
@@ -447,14 +451,18 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
         if curve is None:
             curve_list = []
             for wdg in self.widget_list:
-                curve_list.append(self.new_curve(wdg, results))
+                new_curve = self.new_curve(wdg, results)
+                if isinstance(new_curve, (tuple, list)):
+                    curve_list.extend(new_curve)
+                else:
+                    curve_list.append(new_curve)
         else:
             curve_list = curve[:]
 
         curve_color = pg.intColor(0)
-        for wdg, curve in zip(self.widget_list, curve_list):
-            if isinstance(wdg, PlotWidget):
-                curve_color = curve.opts['pen'].color()
+        for curve in curve_list:
+            if hasattr(curve, 'color'):
+                curve_color = curve.color
                 break
 
         browser_item = BrowserItem(results, curve_color)
@@ -584,15 +592,18 @@ class ManagedWindow(ManagedWindowBase):
     :param x_axis: the initial data-column for the x-axis of the plot
     :param y_axis: the initial data-column for the y-axis of the plot
     :param linewidth: linewidth for the displayed curves, default is 1
+    :param log_fmt: formatting string for the log-widget
+    :param log_datefmt: formatting string for the date in the log-widget
     :param \\**kwargs: optional keyword arguments that will be passed to
         :class:`~pymeasure.display.windows.managed_window.ManagedWindowBase`
 
     """
 
-    def __init__(self, procedure_class, x_axis=None, y_axis=None, linewidth=1, **kwargs):
+    def __init__(self, procedure_class, x_axis=None, y_axis=None, linewidth=1,
+                 log_fmt=None, log_datefmt=None, **kwargs):
         self.x_axis = x_axis
         self.y_axis = y_axis
-        self.log_widget = LogWidget("Experiment Log")
+        self.log_widget = LogWidget("Experiment Log", fmt=log_fmt, datefmt=log_datefmt)
         self.plot_widget = PlotWidget("Results Graph", procedure_class.DATA_COLUMNS, self.x_axis,
                                       self.y_axis, linewidth=linewidth)
         self.plot_widget.setMinimumSize(100, 200)
@@ -604,7 +615,7 @@ class ManagedWindow(ManagedWindowBase):
         super().__init__(procedure_class, **kwargs)
 
         # Setup measured_quantities once we know x_axis and y_axis
-        self.browser_widget.browser.measured_quantities = [self.x_axis, self.y_axis]
+        self.browser_widget.browser.measured_quantities.update([self.x_axis, self.y_axis])
 
         logging.getLogger().addHandler(self.log_widget.handler)  # needs to be in Qt context?
         log.setLevel(self.log_level)
