@@ -193,7 +193,7 @@ class ManagedConsole(QtCore.QCoreApplication):
             parent=self)
         self.manager.abort_returned.connect(self.abort_returned)
         # self.manager.queued.connect(self.queued)
-        # self.manager.running.connect(self.running)
+        self.manager.failed.connect(self.failed)
         self.manager.finished.connect(self.finished)
         self.manager.log.connect(self.log.handle)
 
@@ -202,8 +202,6 @@ class ManagedConsole(QtCore.QCoreApplication):
             self.bar = tqdm(total=100)
         else:
             self.bar = None
-
-        procedure = self.procedure_class()
 
         # Handle Ctrl+C nicely
         signal.signal(signal.SIGINT, lambda sig, _: self.abort())
@@ -223,6 +221,9 @@ class ManagedConsole(QtCore.QCoreApplication):
 
     def finished(self):
         self._terminate("Running experiment has finished", 100.0)
+
+    def failed(self):
+        self._terminate("Running experiment has failed")
 
     def _terminate(self, debug_message, update_bar=None):
         log.debug(debug_message)
