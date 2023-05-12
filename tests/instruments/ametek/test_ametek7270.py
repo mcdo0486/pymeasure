@@ -59,35 +59,39 @@ def test_y_getter():
 
 
 def test_x1_getter():
-    with expected_protocol(
-            Ametek7270,
-            [(b'X1.', b'')],
-    ) as inst:
-        assert inst.x1 == ''
+    with pytest.raises(ValueError):
+        with expected_protocol(
+                Ametek7270,
+                [(b'X1.', b'')],
+        ) as inst:
+            assert inst.x1 == ''
 
 
 def test_y1_getter():
-    with expected_protocol(
-            Ametek7270,
-            [(b'Y1.', b'')],
-    ) as inst:
-        assert inst.y1 == ''
+    with pytest.raises(ValueError):
+        with expected_protocol(
+                Ametek7270,
+                [(b'Y1.', b'')],
+        ) as inst:
+            assert inst.y1 == ''
 
 
 def test_x2_getter():
-    with expected_protocol(
-            Ametek7270,
-            [(b'X2.', b'')],
-    ) as inst:
-        assert inst.x2 == ''
+    with pytest.raises(ValueError):
+        with expected_protocol(
+                Ametek7270,
+                [(b'X2.', b'')],
+        ) as inst:
+            assert inst.x2 == ''
 
 
 def test_y2_getter():
-    with expected_protocol(
-            Ametek7270,
-            [(b'Y2.', b'')],
-    ) as inst:
-        assert inst.y2 == ''
+    with pytest.raises(ValueError):
+        with expected_protocol(
+                Ametek7270,
+                [(b'Y2.', b'')],
+        ) as inst:
+            assert inst.y2 == ''
 
 
 def test_xy_getter():
