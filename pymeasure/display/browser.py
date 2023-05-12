@@ -35,6 +35,10 @@ log.addHandler(logging.NullHandler())
 
 
 class BaseBrowserItem(object):
+    status_label = {
+        Procedure.QUEUED: 'Queued', Procedure.RUNNING: 'Running',
+        Procedure.FAILED: 'Failed', Procedure.ABORTED: 'Aborted',
+        Procedure.FINISHED: 'Finished'}
 
     def setStatus(self, status):
         raise NotImplementedError('Must be reimplemented by subclasses')
@@ -63,11 +67,7 @@ class BrowserItem(QtWidgets.QTreeWidgetItem, BaseBrowserItem):
         self.progressbar.setValue(0)
 
     def setStatus(self, status):
-        status_label = {
-            Procedure.QUEUED: 'Queued', Procedure.RUNNING: 'Running',
-            Procedure.FAILED: 'Failed', Procedure.ABORTED: 'Aborted',
-            Procedure.FINISHED: 'Finished'}
-        self.setText(3, status_label[status])
+        self.setText(3, self.status_label[status])
 
         if status == Procedure.FAILED or status == Procedure.ABORTED:
             # Set progress bar color to red

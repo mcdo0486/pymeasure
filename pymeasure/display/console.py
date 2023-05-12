@@ -29,12 +29,9 @@ import copy
 import argparse
 
 try:
-    import progressbar
-
-    # Check that progressbar is progressbar2
-    progressbar.streams
+    from tqdm import tqdm
 except (AttributeError, ImportError):
-    progressbar = None
+    tqdm = None
 from .Qt import QtCore
 import signal
 from ..log import console_log
@@ -55,10 +52,13 @@ class ConsoleBrowserItem(BaseBrowserItem):
         self.bar = progress_bar
 
     def setStatus(self, status):
-        if self.bar: self.bar.update(status)
+        if self.bar:
+            self.bar.set_description(self.status_label[status])
 
     def setProgress(self, status):
-        if self.bar: self.bar.update(status)
+        if self.bar:
+            self.bar.n = status
+            self.bar.refresh()
 
 
 class ConsoleArgumentParser(argparse.ArgumentParser):
@@ -198,11 +198,8 @@ class ManagedConsole(QtCore.QCoreApplication):
         self.manager.log.connect(self.log.handle)
 
         self.args = vars(self.parser.parse_args())
-        if (progressbar and not self.args['no_progressbar']):
-            progressbar.streams.wrap_stderr()
-            self.bar = progressbar.ProgressBar(max_value=100,
-                                               prefix='{variables.status}: ',
-                                               variables={'status': "Unknown"})
+        if (tqdm and not self.args['no_progressbar']):
+            self.bar = tqdm(total=100)
         else:
             self.bar = None
 
@@ -232,8 +229,7 @@ class ManagedConsole(QtCore.QCoreApplication):
         if not self.manager.experiments.has_next():
             log.debug("Monitor has cleaned up after the Worker")
             if self.bar:
-                self.bar.update(update_bar)
-                self.bar.finish()
+                self.bar.close()
             self.quit()
 
     def abort(self):
