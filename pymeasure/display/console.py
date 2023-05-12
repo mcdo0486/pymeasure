@@ -28,11 +28,10 @@ import os
 import copy
 import argparse
 try:
-    import progressbar
-    # Check that progressbar is progressbar2
-    progressbar.streams
+    from tqdm.auto import tqdm
 except (AttributeError, ImportError):
-    progressbar = None
+    tqdm = None
+
 from .Qt import QtCore
 import signal
 from ..log import console_log
@@ -46,26 +45,26 @@ log.addHandler(logging.NullHandler())
 
 class ConsoleArgumentParser(argparse.ArgumentParser):
     special_options = {
-        "no-progressbar":   {"default": False,
-                             "desc": "Disable progressbar",
-                             "help_fields": ["default"],
-                             "action": 'store_true'},
-        "log-level":        {"default": 'INFO',
-                             "choices": list(logging._nameToLevel.keys()),
-                             "desc": "Set log level (logging module values)",
-                             "help_fields": ["default"]},
-        "sequence-file":    {"default": None,
-                             "desc": "Sequencer file",
-                             "help_fields": ["default"]},
+        "no-progressbar": {"default": False,
+                           "desc": "Disable progressbar",
+                           "help_fields": ["default"],
+                           "action": 'store_true'},
+        "log-level": {"default": 'INFO',
+                      "choices": list(logging._nameToLevel.keys()),
+                      "desc": "Set log level (logging module values)",
+                      "help_fields": ["default"]},
+        "sequence-file": {"default": None,
+                          "desc": "Sequencer file",
+                          "help_fields": ["default"]},
         "result-directory": {"default": ".",
                              "desc": "directory where experiment's result are saved",
                              "help_fields": ["default"]},
-        "result-file":      {"default": None,
-                             "desc": "File name where results are stored",
-                             "help_fields": ["default"]},
-        "use-result-file":  {"default": None,
-                             "desc": "Result file to retrieve params from",
-                             "help_fields": ["default"]},
+        "result-file": {"default": None,
+                        "desc": "File name where results are stored",
+                        "help_fields": ["default"]},
+        "use-result-file": {"default": None,
+                            "desc": "Result file to retrieve params from",
+                            "help_fields": ["default"]},
     }
 
     def __init__(self, procedure_class, **kwargs):
@@ -147,6 +146,7 @@ class ManagedConsole(QtCore.QCoreApplication):
     :param directory_input: specify, if present, where the experiment's result
     will be saved.
     """
+
     def __init__(self,
                  procedure_class,
                  log_channel='',
@@ -184,11 +184,12 @@ class ManagedConsole(QtCore.QCoreApplication):
 
     def _update_progress(self, progress):
         if self.bar:
-            self.bar.update(progress)
+            self.bar.n = progress
+            self.bar.refresh()
 
     def _update_status(self, status):
         if self.bar:
-            self.bar.update(status=Procedure.STATUS_STRINGS[status])
+            self.bar.set_description(Procedure.STATUS_STRINGS[status])
 
     def _update_log(self, record):
         log.emit(record)
@@ -207,8 +208,7 @@ class ManagedConsole(QtCore.QCoreApplication):
         self._monitor.wait()
         log.debug("Monitor has cleaned up after the Worker")
         if self.bar:
-            self.bar.update(update_bar)
-            self.bar.finish()
+            self.bar.close()
         self.quit()
 
     def abort(self):
@@ -217,6 +217,8 @@ class ManagedConsole(QtCore.QCoreApplication):
         """
         self._worker.update_status(Procedure.ABORTED)
         self._worker.stop()
+        if self.bar:
+            self.bar.close()
 
     def exec(self):
         # Parse command line arguments
@@ -252,11 +254,8 @@ class ManagedConsole(QtCore.QCoreApplication):
                     parameter_values[name] = args[name]
 
         procedure.set_parameters(parameter_values)
-        if (progressbar and not args['no_progressbar']):
-            progressbar.streams.wrap_stderr()
-            self.bar = progressbar.ProgressBar(max_value=100,
-                                               prefix='{variables.status}: ',
-                                               variables={'status': "Unknown"})
+        if (tqdm and not args['no_progressbar']):
+            self.bar = tqdm(total=100)
         else:
             self.bar = None
         scribe = console_log(self.log, level=self.log_level)
