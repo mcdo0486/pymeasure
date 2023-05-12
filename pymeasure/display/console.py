@@ -28,7 +28,7 @@ import os
 import copy
 import argparse
 try:
-    from tqdm.auto import tqdm
+    from tqdm import tqdm
 except (AttributeError, ImportError):
     tqdm = None
 
