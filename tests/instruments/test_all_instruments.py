@@ -37,7 +37,7 @@ channels = set()
 
 def find_devices_in_module(module, devices, channels):
     base_dir = Path(module.__path__[0])
-    base_import = 'pymeasure.instruments.'
+    base_import = module.__package__ + '.'
     for folder in [i for i in base_dir.iterdir() if i.is_dir() and i.name[0] != '.']:
         try:
             package = importlib.import_module(base_import + folder.name).__package__ + '.'
