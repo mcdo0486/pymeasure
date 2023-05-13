@@ -248,8 +248,11 @@ class ManagedConsole(QtCore.QCoreApplication):
         else:
             return unique_filename(directory)
 
+    def queue(self, procedure=None):
+        raise NotImplementedError("Abstract method, must be overridden by the child class.")
+
     def queued(self):
-        raise NotImplementedError("Queuing not yet implemented")
+        raise NotImplementedError("Multiple queued experiments not yet implemented")
 
     def abort_returned(self):
         self._terminate("Running experiment has returned after an abort")
