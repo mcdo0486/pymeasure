@@ -115,7 +115,7 @@ class ExperimentQueue(QtCore.QObject):
         return None
 
 
-class Manager(QtCore.QObject):
+class BaseManager(QtCore.QObject):
     """Controls the execution of :class:`.Experiment` classes by implementing
     a queue system in which Experiments are added, removed, executed, or
     aborted. When instantiated, the Manager is linked to a :class:`.Browser`
@@ -274,7 +274,7 @@ class Manager(QtCore.QObject):
             self.aborted.emit(self._running_experiment)
 
 
-class GUIManager(Manager):
+class Manager(BaseManager):
 
     def __init__(self, widget_list, browser, port=5888, log_level=logging.INFO, parent=None):
         super().__init__(parent)

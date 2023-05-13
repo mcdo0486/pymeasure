@@ -91,7 +91,7 @@ class MainConsole(ManagedConsole):
         self.queue()
 
     def queue(self):
-        filename = tempfile.mktemp()
+        filename = self.get_filename(self.directory)
         procedure = TestProcedure()
         results = Results(procedure, filename)
         experiment = self.new_experiment(results)

@@ -31,7 +31,7 @@ import subprocess
 import pyqtgraph as pg
 
 from ..browser import BrowserItem
-from ..manager import GUIManager, Experiment
+from ..manager import Manager, Experiment
 from ..Qt import QtCore, QtWidgets, QtGui
 from ..widgets import (
     PlotWidget,
@@ -187,7 +187,7 @@ class ManagedWindowBase(QtWidgets.QMainWindow):
             hide_groups=self.hide_groups,
         )
 
-        self.manager = GUIManager(self.widget_list,
+        self.manager = Manager(self.widget_list,
                                   self.browser,
                                   log_level=self.log_level,
                                   parent=self)

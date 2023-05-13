@@ -36,11 +36,10 @@ from .Qt import QtCore
 import signal
 from ..log import console_log
 
-from .listeners import Monitor
 from .browser import BaseBrowserItem
-from .manager import Manager, Experiment
+from .manager import BaseManager, Experiment
 
-from ..experiment import Results, Procedure, Worker, unique_filename
+from ..experiment import Results, Procedure, unique_filename
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -182,13 +181,17 @@ class ManagedConsole(QtCore.QCoreApplication):
         log.setLevel(log_level)
         self.log.setLevel(log_level)
 
+        scribe = console_log(self.log, level=self.log_level)
+        scribe.start()
+
         # Check if the get_estimates function is reimplemented
         self.use_estimator = not self.procedure_class.get_estimates == Procedure.get_estimates
         self.parser = ConsoleArgumentParser(procedure_class)
         if self.use_estimator:
             log.warning("Estimator not yet implemented")
 
-        self.manager = Manager(
+        # Setup Manager
+        self.manager = BaseManager(
             log_level=self.log_level,
             parent=self)
         self.manager.abort_returned.connect(self.abort_returned)
@@ -197,54 +200,12 @@ class ManagedConsole(QtCore.QCoreApplication):
         self.manager.finished.connect(self.finished)
         self.manager.log.connect(self.log.handle)
 
+        # Parse command line arguments
         self.args = vars(self.parser.parse_args())
-        if (tqdm and not self.args['no_progressbar']):
+        if tqdm and not self.args['no_progressbar']:
             self.bar = tqdm(total=100)
         else:
             self.bar = None
-
-        # Handle Ctrl+C nicely
-        signal.signal(signal.SIGINT, lambda sig, _: self.abort())
-
-    def get_filename(self, directory):
-        """ Return filename for logging.
-
-        User can override this method to define their own filename
-        """
-        if self.filename is not None:
-            return os.path.join(directory, self.filename)
-        else:
-            return unique_filename(directory)
-
-    def abort_returned(self):
-        self._terminate("Running experiment has returned after an abort")
-
-    def finished(self):
-        self._terminate("Running experiment has finished", 100.0)
-
-    def failed(self):
-        self._terminate("Running experiment has failed")
-
-    def _terminate(self, debug_message, update_bar=None):
-        log.debug(debug_message)
-        if not self.manager.experiments.has_next():
-            log.debug("Monitor has cleaned up after the Worker")
-            if self.bar:
-                self.bar.close()
-            self.quit()
-
-    def abort(self):
-        """ Aborts the currently running Experiment, but raises an exception if
-        there is no running experiment
-        """
-        self.manager.abort()
-
-    def new_experiment(self, results, curve=None):
-        browser_item = ConsoleBrowserItem(self.bar)
-        return Experiment(results, browser_item=browser_item)
-
-    def setup(self):
-        # Parse command line arguments
 
         self.directory = self.args['result_directory']
         self.filename = self.args['result_file']
@@ -273,3 +234,49 @@ class ManagedConsole(QtCore.QCoreApplication):
                 opt_name = name.replace("_", "-")
                 if not (opt_name in self.parser.special_options):
                     parameter_values[name] = self.args[name]
+
+        # Handle Ctrl+C nicely
+        signal.signal(signal.SIGINT, lambda sig, _: self.abort())
+
+    def get_filename(self, directory):
+        """ Return filename for logging.
+
+        User can override this method to define their own filename
+        """
+        if self.filename is not None:
+            return os.path.join(directory, self.filename)
+        else:
+            return unique_filename(directory)
+
+    def queued(self):
+        raise NotImplementedError("Queuing not yet implemented")
+
+    def abort_returned(self):
+        self._terminate("Running experiment has returned after an abort")
+
+    def finished(self):
+        self._terminate("Running experiment has finished", 100)
+
+    def failed(self):
+        self._terminate("Running experiment has failed")
+
+    def _terminate(self, debug_message, progress=None):
+        log.debug(debug_message)
+        if not self.manager.experiments.has_next():
+            log.debug("Monitor has cleaned up after the Worker")
+            if self.bar:
+                if progress:
+                    self.bar.n = progress
+                    self.bar.refresh()
+                self.bar.close()
+            self.quit()
+
+    def abort(self):
+        """ Aborts the currently running Experiment, but raises an exception if
+        there is no running experiment
+        """
+        self.manager.abort()
+
+    def new_experiment(self, results):
+        browser_item = ConsoleBrowserItem(self.bar)
+        return Experiment(results, browser_item=browser_item)
