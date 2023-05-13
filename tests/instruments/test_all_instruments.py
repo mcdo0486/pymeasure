@@ -23,12 +23,12 @@
 #
 
 import importlib
+from pathlib import Path
 import pytest
 from unittest.mock import MagicMock
 
 from pymeasure import instruments
 from pymeasure.instruments import Instrument, Channel
-
 
 # Collect all instruments
 devices = []
@@ -36,21 +36,26 @@ channels = []
 
 
 def find_devices_in_module(module, devices, channels):
-    for dev in dir(module):
-        if dev.startswith("__"):
-            continue
-        d = getattr(module, dev)
-        try:
-            i = issubclass(d, Instrument)
-            c = issubclass(d, Channel)
-        except TypeError:
-            # d is no class
-            continue
-        else:
-            if i and d not in devices:
-                devices.append(d)
-            elif c and d not in channels:
-                channels.append(d)
+    base_dir = Path(module.__path__[0])
+    base_import = 'pymeasure.instruments.'
+    for folder in [i for i in base_dir.iterdir() if i.is_dir()]:
+        if '__init__.py' in [d.name for d in folder.iterdir()]:
+            submodule = importlib.import_module(base_import + folder.name)
+            for dev in dir(submodule):
+                if dev.startswith("__"):
+                    continue
+                d = getattr(submodule, dev)
+                try:
+                    i = issubclass(d, Instrument)
+                    c = issubclass(d, Channel)
+                except TypeError:
+                    # d is no class
+                    continue
+                else:
+                    if i and d not in devices:
+                        devices.append(d)
+                    elif c and d not in channels:
+                        channels.append(d)
 
 
 find_devices_in_module(instruments, devices, channels)  # the instruments module itself
@@ -65,7 +70,6 @@ for manufacturer in dir(instruments):
         module = getattr(manu, module_name)
         if type(module).__name__ == "module":
             find_devices_in_module(module, devices, channels)  # module in manufacturer package
-
 
 # Collect all properties
 properties = []
