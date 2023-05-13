@@ -60,7 +60,7 @@ def find_devices_in_module(module, devices, channels):
                             devices.add(d)
                         elif c and d not in channels:
                             channels.add(d)
-        except ModuleNotFoundError as e:
+        except ModuleNotFoundError:
             # Some dependencies may not be installed on test computer, like pyvirtualbench
             pass
 
