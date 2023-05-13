@@ -27,45 +27,61 @@ import logging
 import os
 import copy
 import argparse
+
 try:
-    import progressbar
-    # Check that progressbar is progressbar2
-    progressbar.streams
+    from tqdm import tqdm
 except (AttributeError, ImportError):
-    progressbar = None
+    tqdm = None
 from .Qt import QtCore
 import signal
 from ..log import console_log
-from .listeners import Monitor
 
-from ..experiment import Results, Procedure, Worker, unique_filename
+from .browser import BaseBrowserItem
+from .manager import BaseManager, Experiment
+
+from ..experiment import Results, Procedure, unique_filename
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
+class ConsoleBrowserItem(BaseBrowserItem):
+
+    def __init__(self, progress_bar):
+        self.bar = progress_bar
+
+    def setStatus(self, status):
+        if self.bar:
+            self.bar.set_description(self.status_label[status])
+
+    def setProgress(self, status):
+        if self.bar:
+            self.bar.n = status
+            self.bar.refresh()
+
+
 class ConsoleArgumentParser(argparse.ArgumentParser):
     special_options = {
-        "no-progressbar":   {"default": False,
-                             "desc": "Disable progressbar",
-                             "help_fields": ["default"],
-                             "action": 'store_true'},
-        "log-level":        {"default": 'INFO',
-                             "choices": list(logging._nameToLevel.keys()),
-                             "desc": "Set log level (logging module values)",
-                             "help_fields": ["default"]},
-        "sequence-file":    {"default": None,
-                             "desc": "Sequencer file",
-                             "help_fields": ["default"]},
+        "no-progressbar": {"default": False,
+                           "desc": "Disable progressbar",
+                           "help_fields": ["default"],
+                           "action": 'store_true'},
+        "log-level": {"default": 'INFO',
+                      "choices": list(logging._nameToLevel.keys()),
+                      "desc": "Set log level (logging module values)",
+                      "help_fields": ["default"]},
+        "sequence-file": {"default": None,
+                          "desc": "Sequencer file",
+                          "help_fields": ["default"]},
         "result-directory": {"default": ".",
                              "desc": "directory where experiment's result are saved",
                              "help_fields": ["default"]},
-        "result-file":      {"default": None,
-                             "desc": "File name where results are stored",
-                             "help_fields": ["default"]},
-        "use-result-file":  {"default": None,
-                             "desc": "Result file to retrieve params from",
-                             "help_fields": ["default"]},
+        "result-file": {"default": None,
+                        "desc": "File name where results are stored",
+                        "help_fields": ["default"]},
+        "use-result-file": {"default": None,
+                            "desc": "Result file to retrieve params from",
+                            "help_fields": ["default"]},
     }
 
     def __init__(self, procedure_class, **kwargs):
@@ -147,6 +163,7 @@ class ManagedConsole(QtCore.QCoreApplication):
     :param directory_input: specify, if present, where the experiment's result
     will be saved.
     """
+
     def __init__(self,
                  procedure_class,
                  log_channel='',
@@ -164,11 +181,60 @@ class ManagedConsole(QtCore.QCoreApplication):
         log.setLevel(log_level)
         self.log.setLevel(log_level)
 
+        scribe = console_log(self.log, level=self.log_level)
+        scribe.start()
+
         # Check if the get_estimates function is reimplemented
         self.use_estimator = not self.procedure_class.get_estimates == Procedure.get_estimates
         self.parser = ConsoleArgumentParser(procedure_class)
         if self.use_estimator:
             log.warning("Estimator not yet implemented")
+
+        # Setup Manager
+        self.manager = BaseManager(
+            log_level=self.log_level,
+            parent=self)
+        self.manager.abort_returned.connect(self.abort_returned)
+        # self.manager.queued.connect(self.queued)
+        self.manager.failed.connect(self.failed)
+        self.manager.finished.connect(self.finished)
+        self.manager.log.connect(self.log.handle)
+
+        # Parse command line arguments
+        self.args = vars(self.parser.parse_args())
+        if tqdm and not self.args['no_progressbar']:
+            self.bar = tqdm(total=100)
+        else:
+            self.bar = None
+
+        self.directory = self.args['result_directory']
+        self.filename = self.args['result_file']
+        try:
+            log_level = int(self.args['log_level'])
+        except ValueError:
+            # Ignore and assume it is a valid level string
+            log_level = self.args['log_level']
+        self.log_level = log_level
+        log.setLevel(self.log_level)
+        self.log.setLevel(self.log_level)
+
+        if self.args['sequence_file'] is not None:
+            raise NotImplementedError("Sequencer not yet implemented")
+
+        # Set procedure parameters
+        parameter_values = {}
+
+        if self.args['use_result_file'] is not None:
+            # Special case set parameters from log file
+            results = Results.load(self.args['use_result_file'])
+            for name in results.parameters:
+                parameter_values[name] = results.parameters[name].value
+        else:
+            for name in self.args:
+                opt_name = name.replace("_", "-")
+                if not (opt_name in self.parser.special_options):
+                    parameter_values[name] = self.args[name]
+
         # Handle Ctrl+C nicely
         signal.signal(signal.SIGINT, lambda sig, _: self.abort())
 
@@ -182,100 +248,35 @@ class ManagedConsole(QtCore.QCoreApplication):
         else:
             return unique_filename(directory)
 
-    def _update_progress(self, progress):
-        if self.bar:
-            self.bar.update(progress)
+    def queued(self):
+        raise NotImplementedError("Queuing not yet implemented")
 
-    def _update_status(self, status):
-        if self.bar:
-            self.bar.update(status=Procedure.STATUS_STRINGS[status])
-
-    def _update_log(self, record):
-        log.emit(record)
-
-    def _failed(self):
-        self._terminate("Manager's running experiment has failed")
-
-    def _abort_returned(self):
+    def abort_returned(self):
         self._terminate("Running experiment has returned after an abort")
 
-    def _finish(self):
-        self._terminate("Running experiment has finished", 100.0)
+    def finished(self):
+        self._terminate("Running experiment has finished", 100)
 
-    def _terminate(self, debug_message, update_bar=None):
+    def failed(self):
+        self._terminate("Running experiment has failed")
+
+    def _terminate(self, debug_message, progress=None):
         log.debug(debug_message)
-        self._monitor.wait()
-        log.debug("Monitor has cleaned up after the Worker")
-        if self.bar:
-            self.bar.update(update_bar)
-            self.bar.finish()
-        self.quit()
+        if not self.manager.experiments.has_next():
+            log.debug("Monitor has cleaned up after the Worker")
+            if self.bar:
+                if progress:
+                    self.bar.n = progress
+                    self.bar.refresh()
+                self.bar.close()
+            self.quit()
 
     def abort(self):
         """ Aborts the currently running Experiment, but raises an exception if
         there is no running experiment
         """
-        self._worker.update_status(Procedure.ABORTED)
-        self._worker.stop()
+        self.manager.abort()
 
-    def exec(self):
-        # Parse command line arguments
-        args = vars(self.parser.parse_args())
-        procedure = self.procedure_class()
-
-        self.directory = args['result_directory']
-        self.filename = args['result_file']
-        try:
-            log_level = int(args['log_level'])
-        except ValueError:
-            # Ignore and assume it is a valid level string
-            log_level = args['log_level']
-        self.log_level = log_level
-        log.setLevel(self.log_level)
-        self.log.setLevel(self.log_level)
-
-        if args['sequence_file'] is not None:
-            raise NotImplementedError("Sequencer not yet implemented")
-
-        # Set procedure parameters
-        parameter_values = {}
-
-        if args['use_result_file'] is not None:
-            # Special case set parameters from log file
-            results = Results.load(args['use_result_file'])
-            for name in results.parameters:
-                parameter_values[name] = results.parameters[name].value
-        else:
-            for name in args:
-                opt_name = name.replace("_", "-")
-                if not (opt_name in self.parser.special_options):
-                    parameter_values[name] = args[name]
-
-        procedure.set_parameters(parameter_values)
-        if (progressbar and not args['no_progressbar']):
-            progressbar.streams.wrap_stderr()
-            self.bar = progressbar.ProgressBar(max_value=100,
-                                               prefix='{variables.status}: ',
-                                               variables={'status': "Unknown"})
-        else:
-            self.bar = None
-        scribe = console_log(self.log, level=self.log_level)
-        scribe.start()
-
-        results = Results(procedure, self.get_filename(self.directory))
-        log.debug("Set up Results")
-
-        self._worker = Worker(results, log_queue=scribe.queue, log_level=self.log_level)
-        log.info("Created worker for procedure {}".format(self.procedure_class.__name__))
-
-        self._monitor = Monitor(self._worker.monitor_queue)
-        self._monitor.worker_failed.connect(self._failed)
-        self._monitor.worker_abort_returned.connect(self._abort_returned)
-        self._monitor.worker_finished.connect(self._finish)
-        self._monitor.progress.connect(self._update_progress)
-        self._monitor.status.connect(self._update_status)
-        self._monitor.log.connect(self._update_log)
-
-        self._monitor.start()
-        self._worker.start()
-        super().exec()
+    def new_experiment(self, results):
+        browser_item = ConsoleBrowserItem(self.bar)
+        return Experiment(results, browser_item=browser_item)

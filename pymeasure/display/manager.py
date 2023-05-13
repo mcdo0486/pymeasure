@@ -46,7 +46,7 @@ class Experiment(QtCore.QObject):
     :param browser_item: :class:`.BrowserItem` object
     """
 
-    def __init__(self, results, curve_list, browser_item, parent=None):
+    def __init__(self, results, curve_list=None, browser_item=None, parent=None):
         super().__init__(parent)
         self.results = results
         self.data_filename = self.results.data_filename
@@ -115,7 +115,7 @@ class ExperimentQueue(QtCore.QObject):
         return None
 
 
-class Manager(QtCore.QObject):
+class BaseManager(QtCore.QObject):
     """Controls the execution of :class:`.Experiment` classes by implementing
     a queue system in which Experiments are added, removed, executed, or
     aborted. When instantiated, the Manager is linked to a :class:`.Browser`
@@ -132,7 +132,7 @@ class Manager(QtCore.QObject):
     abort_returned = QtCore.Signal(object)
     log = QtCore.Signal(object)
 
-    def __init__(self, widget_list, browser, port=5888, log_level=logging.INFO, parent=None):
+    def __init__(self, port=5888, log_level=logging.INFO, parent=None):
         super().__init__(parent)
 
         self.experiments = ExperimentQueue()
@@ -140,9 +140,6 @@ class Manager(QtCore.QObject):
         self._running_experiment = None
         self._monitor = None
         self.log_level = log_level
-
-        self.widget_list = widget_list
-        self.browser = browser
 
         self.port = port
 
@@ -172,11 +169,6 @@ class Manager(QtCore.QObject):
     def load(self, experiment):
         """ Load a previously executed Experiment
         """
-        for curve in experiment.curve_list:
-            if curve:
-                curve.wdg.load(curve)
-
-        self.browser.add(experiment)
         self.experiments.append(experiment)
 
     def queue(self, experiment):
@@ -191,11 +183,6 @@ class Manager(QtCore.QObject):
         """ Removes an Experiment
         """
         self.experiments.remove(experiment)
-        self.browser.takeTopLevelItem(
-            self.browser.indexOfTopLevelItem(experiment.browser_item))
-        for curve in experiment.curve_list:
-            if curve:
-                curve.wdg.remove(curve)
 
     def clear(self):
         """ Remove all Experiments
@@ -260,9 +247,6 @@ class Manager(QtCore.QObject):
         experiment = self._running_experiment
         self._clean_up()
         experiment.browser_item.setProgress(100)
-        for curve in experiment.curve_list:
-            if curve:
-                curve.update_data()
         self.finished.emit(experiment)
         if self._is_continuous:  # Continue running procedures
             self.next()
@@ -288,3 +272,54 @@ class Manager(QtCore.QObject):
             self._worker.stop()
 
             self.aborted.emit(self._running_experiment)
+
+
+class Manager(BaseManager):
+
+    def __init__(self, widget_list, browser, port=5888, log_level=logging.INFO, parent=None):
+        super().__init__(parent)
+
+        self.experiments = ExperimentQueue()
+        self._worker = None
+        self._running_experiment = None
+        self._monitor = None
+        self.log_level = log_level
+
+        self.widget_list = widget_list
+        self.browser = browser
+
+        self.port = port
+
+    def load(self, experiment):
+        """ Load a previously executed Experiment
+        """
+
+        super().load(experiment)
+        self.browser.add(experiment)
+        for curve in experiment.curve_list:
+            if curve:
+                curve.wdg.load(curve)
+
+    def remove(self, experiment):
+        """ Removes an Experiment
+        """
+        super().remove(experiment)
+
+        self.browser.takeTopLevelItem(
+            self.browser.indexOfTopLevelItem(experiment.browser_item))
+
+        for curve in experiment.curve_list:
+            if curve:
+                curve.wdg.remove(curve)
+
+    def _finish(self):
+        log.debug("Manager's running experiment has finished")
+        experiment = self._running_experiment
+        self._clean_up()
+        experiment.browser_item.setProgress(100)
+        for curve in experiment.curve_list:
+            if curve:
+                curve.update_data()
+        self.finished.emit(experiment)
+        if self._is_continuous:  # Continue running procedures
+            self.next()
