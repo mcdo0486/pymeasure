@@ -42,8 +42,9 @@ class Experiment(QtCore.QObject):
 
     :param results: :class:`.Results` object
     :param curve_list: :class:`.ResultsCurve` list. List of curves associated with
-        an experiment. They could represent different views of the same experiment.
-    :param browser_item: :class:`.BrowserItem` object
+        an experiment. They could represent different views of the same experiment. Not required
+        for `.ManagedConsole` displayed experiments.
+    :param browser_item: :class:`.BaseBrowserItem` based object
     """
 
     def __init__(self, results, curve_list=None, browser_item=None, parent=None):
@@ -56,8 +57,8 @@ class Experiment(QtCore.QObject):
 
 
 class ExperimentQueue(QtCore.QObject):
-    """ Represents a Queue of Experiments and allows queries to
-    be easily preformed
+    """ Represents a queue of Experiments and allows queries to
+    be easily preformed.
     """
 
     def __init__(self):
@@ -118,9 +119,7 @@ class ExperimentQueue(QtCore.QObject):
 class BaseManager(QtCore.QObject):
     """Controls the execution of :class:`.Experiment` classes by implementing
     a queue system in which Experiments are added, removed, executed, or
-    aborted. When instantiated, the Manager is linked to a :class:`.Browser`
-    and a PyQtGraph `PlotItem` within the user interface, which are updated
-    in accordance with the execution status of the Experiments.
+    aborted.
     """
     _is_continuous = True
     _start_on_add = True
@@ -275,6 +274,12 @@ class BaseManager(QtCore.QObject):
 
 
 class Manager(BaseManager):
+    """Controls the execution of :class:`.Experiment` classes by implementing
+        a queue system in which Experiments are added, removed, executed, or
+        aborted. When instantiated, the Manager is linked to a :class:`.Browser`
+        and a PyQtGraph `PlotItem` within the user interface, which are updated
+        in accordance with the execution status of the Experiments.
+        """
 
     def __init__(self, widget_list, browser, port=5888, log_level=logging.INFO, parent=None):
         super().__init__(parent)
