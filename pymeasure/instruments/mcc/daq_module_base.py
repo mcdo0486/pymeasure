@@ -58,8 +58,7 @@ class DAQModule(Instrument):
     the serial connection.
 
     :param address: Daisy chain address number of the DAQ board for the serial
-    connection. Valid values are two digit string values between 00 to FF
-    (string version of 0 - 255 HEX format).
+    connection. Valid values are integers between 0 - 255 (inclusive).
     """
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,20 +73,33 @@ class DAQModule(Instrument):
             includeSCPI=False,
             **kwargs
         )
-
-        #Convert address from int to str representing a two-digit hex character
-        #Validate address is between 0 - 255
-        strict_discrete_set(address, range(0,256))
-        # Convert to hex
-        address_hex = hex(address)
-        #Strip leading "0x" of hex string and upper case
-        address_split_upper = address_hex[2:].upper()
-        #Address needs two digits
-        self.address = address_split_upper.zfill(2)
+        # Need to convert address to string that represents hex number
+        self.address = self.convert_address_to_hex_string(address)
 
         #self.address = address
         #kwargs.setdefault('timeout', 500)
         #kwargs.setdefault('baudrate', 9600)
+
+    def convert_address_to_hex_string(self, address):
+        """Convert address integer argument to a string based on a two-digit
+        hex number.
+
+        :param address: Daisy chain address number of the DAQ board for the
+        serial connection. Valid values are integers between 0 - 255
+        (inclusive).
+        :type address: int
+        :return: Address as a string that represents a two digit HEX number.
+        :rtype: str
+        """
+
+        # Verify address is between 0 - 255 (inclusive)
+        strict_discrete_set(address, range(0,256))
+        # Convert to hex
+        address_hex = hex(address)
+        # Strip leading "0x" of hex string and upper case
+        address_split_upper = address_hex[2:].upper()
+        # address needs two digits
+        return address_split_upper.zfill(2)
 
     def check_get_errors(self, output):
         """Checks for the invalid command delimiter symbol ``?`` in a
@@ -114,7 +126,6 @@ class DAQModule(Instrument):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
     ## Does not work
     def measure_all_channels(self):
@@ -145,9 +156,6 @@ class DAQModule(Instrument):
         self.check_get_errors(output)
         value = self.format_output(output)
         return value
-
-
-
 
     # Not valid command?
     def reset_channel(self, channel):
