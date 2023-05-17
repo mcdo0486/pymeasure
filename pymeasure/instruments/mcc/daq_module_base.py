@@ -119,7 +119,8 @@ class DAQModule(Instrument):
         """
 
         try:
-            return float(output[1:])
+            return output[1:]
+            # return float(output[1:])
         except:
             raise ValueError("Invalid command.")
 
@@ -127,11 +128,14 @@ class DAQModule(Instrument):
     # Methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ## Does not work
     def measure_all_channels(self):
-        """Measure signals from all channels.
+        """Measure the input signals from all channels.
+
+        Method returns a string containing the measured signal from all DAQ
+        channels.
 
         :return: Measured signal of all channels.
+        :rtype: str
         """
 
         output = self.ask("#" + self.address)
@@ -140,10 +144,13 @@ class DAQModule(Instrument):
         return value
 
     def measure_channel(self, channel):
-        """Measure signal from a channel.
+        """Measure the input signal from a single channel.
 
         Valid ``channel`` values are integers between 0 - 7 (inclusive). Method
         returns the value of the desired channel as a floating point number.
+        Method assumes that DAQ board data format setting is set to
+        "engineering format" or "percent format". Do not use if data format
+        setting is set to "HEX format".
 
         :param channel: Channel number of DAQ board.
         :type channel: int
@@ -154,8 +161,74 @@ class DAQModule(Instrument):
         strict_discrete_set(channel, range(0, 8))
         output = self.ask("#" + self.address + str(channel))
         self.check_get_errors(output)
+        value = float(self.format_output(output))
+        return value
+
+    def perform_span_calibration(self):
+        """Perform span calibration on the DAQ board.
+
+        Method returns the DAQ board daisy chain address as a string that
+        represents a two digit HEX number.
+
+        :return: DAQ board address as a string that represents a two digit
+        HEX number.
+        :rtype: str
+        """
+
+        output = self.ask("$" + self.address + "0")
+        self.check_get_errors(output)
         value = self.format_output(output)
         return value
+
+    def perform_zero_calibration(self):
+        """Perform zero calibration on the DAQ board.
+
+        Method returns the DAQ board daisy chain address as a string that
+        represents a two digit HEX number.
+
+        :return: DAQ board address as a string that represents a two digit
+        HEX number.
+        :rtype: str
+        """
+
+        output = self.ask("$" + self.address + "1")
+        self.check_get_errors(output)
+        value = self.format_output(output)
+        return value
+
+    def read_configuration(self):
+        """Read the configuration of the DAQ board.
+
+        Method returns the DAQ board configuration as a string in the format
+        "AATTCCFF" where "AA" is the board address represented as a two digit
+        HEX number, "TT" is the analog input type code number, "CC" is the baud
+        rate setting code number, and "FF" is the data format setting code
+        number.
+
+        :return: DAQ board configuration
+        :rtype: str
+        """
+
+        output = self.ask("$" + self.address + "2")
+        self.check_get_errors(output)
+        value = self.format_output(output)
+        return value
+
+    def read_cjc_temp(self):
+        """Read the cold junction compensation (CJC) temperature.
+
+        Method returns the cold junction compensation (CJC) temperature as a
+        floating point number in Celsius.
+
+        :return: CJC temperature
+        :rtype: float
+        """
+
+        output = self.ask("$" + self.address + "3")
+        self.check_get_errors(output)
+        value = float(self.format_output(output))
+        return value
+
 
     # Not valid command?
     def reset_channel(self, channel):
