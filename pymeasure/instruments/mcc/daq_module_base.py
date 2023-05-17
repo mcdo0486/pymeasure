@@ -26,12 +26,10 @@
 # Libraries / modules
 # =============================================================================
 
-from pymeasure.instruments import Instrument, Channel
+from pymeasure.instruments import Instrument
 import logging
 
 from pymeasure.instruments.validators import strict_discrete_set
-from numpy import array, float64
-from time import sleep
 
 # =============================================================================
 # Logging
@@ -69,7 +67,7 @@ class DAQModule(Instrument):
         super().__init__(
             adapter,
             name,
-            asrl={"baud_rate": 9600, "timeout": 500},
+            asrl={"baud_rate": 9600, "timeout": 500, "read_termination":"\r", "write_termination":"\r"},
             includeSCPI=False,
             **kwargs
         )
@@ -229,6 +227,22 @@ class DAQModule(Instrument):
         value = float(self.format_output(output))
         return value
 
+    def channels_enabled(self):
+        """Read the cold junction compensation (CJC) temperature.
+
+        Method returns the cold junction compensation (CJC) temperature as a
+        floating point number in Celsius.
+
+        :return: CJC temperature
+        :rtype: float
+        """
+        status = [False] * 8
+        output = self.ask("$"+self.address+'6')
+        self.check_get_errors(output)
+        hex_string = output[-2:]
+        for idx, i in enumerate(list(reversed([bool(int(i)) for i in bin(int(hex_string, 16))[2:]]))):
+            status[idx] = i
+        return status
 
     # Not valid command?
     def reset_channel(self, channel):
