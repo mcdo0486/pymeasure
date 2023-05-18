@@ -45,7 +45,11 @@ log.addHandler(logging.NullHandler())
 
 class DAQModule(Instrument):
     """This is the base class for the Measurement Computing line of DAQ boards.
-    This includes DAQ boards under the branding of MMC, CBCOM, and SignalLogics.
+    This includes DAQ boards under the branding of MCC, CBCOM, or SuperLogics.
+    Class assumes that a MCC, CBCOM, or SuperLogics RS232 to RS485 adapter board
+    (e.g., MCC CB-7520 or Superlogics 8520) is used to communicate with the DAQ
+    board.
+
     Do not directly instantiate an object with this class. Use one of the
     DAQ board instrument classes that inherit from this parent class. Untested
     commands are noted in docstrings.
@@ -55,6 +59,8 @@ class DAQModule(Instrument):
     ``address`` that declares the daisy chain address of the DAQ board along
     the serial connection.
 
+    Untested methods are noted in docstrings.
+
     :param address: Daisy chain address number of the DAQ board for the serial
     connection. Valid values are integers between 0 - 255 (inclusive).
     """
@@ -63,20 +69,19 @@ class DAQModule(Instrument):
     # Initializer and important communication methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def __init__(self, adapter, name="CB7018 DAQ module", address=1, **kwargs):
+    def __init__(self, adapter, name="CB-7018 DAQ module", address=1, **kwargs):
         super().__init__(
             adapter,
             name,
-            asrl={"baud_rate": 9600, "timeout": 500, "read_termination":"\r", "write_termination":"\r"},
+            asrl={"baud_rate": 9600,
+                  "timeout": 500,
+                  "read_termination": "\r",
+                  "write_termination": "\r"},
             includeSCPI=False,
             **kwargs
         )
         # Need to convert address to string that represents hex number
         self.address = self.convert_address_to_hex_string(address)
-
-        #self.address = address
-        #kwargs.setdefault('timeout', 500)
-        #kwargs.setdefault('baudrate', 9600)
 
     def convert_address_to_hex_string(self, address):
         """Convert address integer argument to a string based on a two-digit
@@ -91,7 +96,7 @@ class DAQModule(Instrument):
         """
 
         # Verify address is between 0 - 255 (inclusive)
-        strict_discrete_set(address, range(0,256))
+        strict_discrete_set(address, range(0, 256))
         # Convert to hex
         address_hex = hex(address)
         # Strip leading "0x" of hex string and upper case
@@ -126,20 +131,73 @@ class DAQModule(Instrument):
     # Methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    def configure_board(self,
+                        new_address,
+                        input_type,
+                        new_baud_rate="06",
+                        new_data_format="00",):
+        """Configure the DAQ board.
+
+        Method configures the DAQ board for use. Only need to run when initially
+        setting up a new board or if you need to change a board setting. Boards
+        retain configuration after powering down. When configuring a board, only
+        connect a single board to the computer / communication module.
+
+        :param new_address: New daisy chain address for DAQ board (NN setting
+        in manual). Value must be a two digit string (e.g., "02", "03").
+        :type new_address: str
+        :param input_type: Analog input type for DAQ board (TT setting in
+        manual). See manual or label on board for possible TT settings. Value
+        must be a two digit string (e.g., "00", "0E").
+        :type input_type: str
+        :param new_baud_rate: New communication baud rate (CC setting in
+        manual). Value must be a two digit string (e.g., "03", "04"). Default
+        value is "06", which represents a 9600 baud rate.
+        :type new_baud_rate: str
+        :param new_data_format: New data format standard for DAQ board (FF
+        setting in manual). Value must be a two digit string (e.g., "00", "01").
+        Default value is "00", which enables a 60 Hz filter, disables the
+        checksum option, and causes the DAQ board to return measured voltages
+        in the "engineering unit format".
+        :type new_data_format: str
+        :return: New address of DAQ board
+        :rtype: str
+
+        Method is UNTESTED.
+        """
+
+        output = self.ask("%" + self.address + new_address + input_type
+                          + new_baud_rate + new_data_format)
+        self.check_get_errors(output)
+        value = float(self.format_output(output))
+        return value
+
     def measure_all_channels(self):
         """Measure the input signals from all channels.
 
         Method returns a string containing the measured signal from all DAQ
-        channels.
+        channels. Method assumes that DAQ board data format setting is set to
+        "engineering format" or "percent format". Do not use if data format
+        setting is set to "HEX format".
 
-        :return: Measured signal of all channels.
-        :rtype: str
+        :return: Measured signal of all channels as a list of floating point
+        numbers. First entry is Channel 0 and final entry is Channel 7.
+        :rtype: list
         """
 
         output = self.ask("#" + self.address)
         self.check_get_errors(output)
-        value = self.format_output(output)
-        return value
+        value_str = self.format_output(output)
+
+        # Returned value is a string of voltages with no delimiter. Values are
+        # either in the format of "+XX.XXX" for "engineering format" or
+        # "+XXX.XX" for "percent format".
+
+        # First, break up string every 7th digit. Create list of str values.
+        list_str = [value_str[i:i + 7] for i in range(0, len(value_str), 7)]
+        # Convert every str entry in list to float.
+        list_float = [float(list_str[i]) for i in range(0, len(list_str))]
+        return list_float
 
     def measure_channel(self, channel):
         """Measure the input signal from a single channel.
@@ -227,15 +285,17 @@ class DAQModule(Instrument):
         value = float(self.format_output(output))
         return value
 
-    def channels_enabled(self):
-        """Read the cold junction compensation (CJC) temperature.
+    def read_channel_status(self):
+        """Read what channels are enabled or disabled.
 
-        Method returns the cold junction compensation (CJC) temperature as a
-        floating point number in Celsius.
+        Method returns an ordered boolean list of ``True`` and ``False`` values
+        representing if a data channel is enabled. First entry is Channel 0
+        and last entry is Channel 7.
 
-        :return: CJC temperature
-        :rtype: float
+        :return: Boolean list representing if a channel is enabled.
+        :rtype: list
         """
+
         status = [False] * 8
         output = self.ask("$"+self.address+'6')
         self.check_get_errors(output)
@@ -244,6 +304,3 @@ class DAQModule(Instrument):
             status[idx] = i
         return status
 
-    # Not valid command?
-    def reset_channel(self, channel):
-        return self.ask("@" + self.address + channel)
