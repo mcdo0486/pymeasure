@@ -2,8 +2,7 @@ name: PyMeasure CI
 on:
   push:
     branches:
-      - master
-      - develop
+      - fix/visa_timeout_test
   pull_request:
 
 jobs:
