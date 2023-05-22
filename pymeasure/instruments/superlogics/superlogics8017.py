@@ -26,7 +26,7 @@
 # Libraries / modules
 # =============================================================================
 
-from pymeasure.instruments.mcc.mcc_cb7018 import DAQModule
+from pymeasure.instruments.mcc.daq_module_base import DAQModule
 import logging
 
 # =============================================================================
@@ -71,11 +71,6 @@ class SuperLogics8017(DAQModule):
         super().__init__(
             adapter,
             name,
-            asrl={"baud_rate": 9600,
-                  "timeout": 500,
-                  "read_termination": "\r",
-                  "write_termination": "\r"},
-            includeSCPI=False,
             **kwargs
         )
         # Need to convert address to string that represents hex number. Uses

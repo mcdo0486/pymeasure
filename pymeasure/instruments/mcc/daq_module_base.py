@@ -38,6 +38,7 @@ from pymeasure.instruments.validators import strict_discrete_set
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+
 # =============================================================================
 # Instrument file
 # =============================================================================
@@ -69,14 +70,15 @@ class DAQModule(Instrument):
     # Initializer and important communication methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def __init__(self, adapter, name="CB-7018 DAQ module", address=1, **kwargs):
+    def __init__(self, adapter, name="CB-7018 DAQ module", address=1,
+                 asrl={"baud_rate": 9600,
+                       "timeout": 500,
+                       "read_termination": "\r",
+                       "write_termination": "\r"}, **kwargs):
         super().__init__(
             adapter,
             name,
-            asrl={"baud_rate": 9600,
-                  "timeout": 500,
-                  "read_termination": "\r",
-                  "write_termination": "\r"},
+            asrl=asrl,
             includeSCPI=False,
             **kwargs
         )
@@ -135,7 +137,7 @@ class DAQModule(Instrument):
                         new_address,
                         input_type,
                         new_baud_rate="06",
-                        new_data_format="00",):
+                        new_data_format="00", ):
         """Configure the DAQ board.
 
         Method configures the DAQ board for use. Only need to run when initially
@@ -297,10 +299,10 @@ class DAQModule(Instrument):
         """
 
         status = [False] * 8
-        output = self.ask("$"+self.address+'6')
+        output = self.ask("$" + self.address + '6')
         self.check_get_errors(output)
         hex_string = output[-2:]
-        for idx, i in enumerate(list(reversed([bool(int(i)) for i in bin(int(hex_string, 16))[2:]]))):
+        for idx, i in enumerate(list(reversed(
+                [bool(int(i)) for i in bin(int(hex_string, 16))[2:]]))):
             status[idx] = i
         return status
-

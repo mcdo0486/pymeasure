@@ -22,4 +22,4 @@
 # THE SOFTWARE.
 #
 
-from .mcc_cb7018 import CB7018
+from .superlogics8017 import SuperLogics8017

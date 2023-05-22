@@ -70,11 +70,6 @@ class CB7018(DAQModule):
         super().__init__(
             adapter,
             name,
-            asrl={"baud_rate": 9600,
-                  "timeout": 500,
-                  "read_termination": "\r",
-                  "write_termination": "\r"},
-            includeSCPI=False,
             **kwargs
         )
         # Need to convert address to string that represents hex number. Uses
