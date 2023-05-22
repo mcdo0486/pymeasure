@@ -62,6 +62,7 @@ if log.hasHandlers():
 
 log.addHandler(logging.NullHandler())
 
+
 # =============================================================================
 # Procedure class
 # =============================================================================
@@ -127,18 +128,18 @@ class TempDiagnostic(Procedure):
         sleep(10)
 
         # Units check
-        log.info("""Does the Lakeshore 211 show Celsius as the units? 
+        log.info("""Does the Lakeshore 211 show Celsius as the units?
          Check front panel within 10 seconds.""")
         self.lakeshore.display_units = "celsius"
         sleep(10)
         units = self.lakeshore.display_units
-        log.info(f"""Does the Lakeshore 211 is reporting that the current 
+        log.info(f"""Does the Lakeshore 211 is reporting that the current
         units is {units}. Is this correct?""")
         print("\n", file=sys.stderr)
         sleep(10)
 
         # Temperature reading
-        log.info("""The Lakeshore 211 will now read the current temperature 
+        log.info("""The Lakeshore 211 will now read the current temperature
         in Celsius.""")
         temp = self.lakeshore.temperature_celsius
         log.info(f"""Does the Lakeshore 211 front panel show the temperature to
@@ -194,7 +195,7 @@ if __name__ == "__main__":
     procedure.lakeshore_address = "COM3"
     # Currently using current directory for test file
     file_name = "./test.csv"
-    results = Results(procedure,  file_name)
+    results = Results(procedure, file_name)
     worker = Worker(results)
     worker.start()
 
