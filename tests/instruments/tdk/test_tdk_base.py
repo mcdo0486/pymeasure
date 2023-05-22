@@ -64,4 +64,3 @@ def test_remote():
         assert instr.remote == "REM"
         instr.remote = 'LOC'
         assert instr.remote == "LOC"
-
