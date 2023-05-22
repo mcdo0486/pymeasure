@@ -36,10 +36,11 @@ class BraunBox(Instrument):
     This is the class for the BraunBox
     """
 
-    def __init__(self, adapter, pins=(10, 11, 12), **kwargs):
+    def __init__(self, adapter,
+                 name="BraunBox", pins=(10, 11, 12), **kwargs):
         super().__init__(
             adapter,
-            name="BraunBox",
+            name,
             includeSCPI=False,
             baud_rate=115200,
             **kwargs
