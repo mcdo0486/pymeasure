@@ -43,18 +43,19 @@ class FWBell5180(FWBell5080):
         print(fields.mean(), fields.std())  # Prints the mean and standard deviation of the samples
     """
 
-    def __init__(self, adapter=None, **kwargs):
+    def __init__(self, adapter=None,
+                 name="F.W. Bell 5180 Handheld Gaussmeter", **kwargs):
         if adapter is None:
             adapter = FWBell5180_Adapter()
         super().__init__(
             adapter,
-            name="F.W. Bell 5180 Handheld Gaussmeter",
+            name,
             **kwargs
         )
 
     field = Instrument.measurement(
         ":MEASure:FLUX?",
-        """ Reads a floating point value of the field in the appropriate units.
+        """Measure a floating point value of the field in the appropriate units.
         """
     )
 
