@@ -160,12 +160,12 @@ class CommonBase:
         :param id: Single value or tuple/list of ids of the children.
         :param prefix: Collection prefix for the attributes, e.g. `"ch_"`
             creates attribute `self.ch_A`. If prefix evaluates False,
-            the child will be added directly under the variable name. Required for lists of id.
+            the child will be added directly under the variable name. Required if id is tuple/list.
         :param: docstring: Docstring for the channel. Required for singular channels.
         :param \\**kwargs: Keyword arguments for all children.
         """
 
-        def __init__(self, cls, id=None, docstring="", prefix="ch_", **kwargs):
+        def __init__(self, cls, id=None, prefix="ch_", docstring="", **kwargs):
             self.factory = True
             try:
                 valid_class = issubclass(cls, CommonBase)

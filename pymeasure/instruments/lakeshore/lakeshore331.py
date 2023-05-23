@@ -31,6 +31,7 @@ from pymeasure.instruments.lakeshore.lakeshore_base import LakeShoreTemperatureC
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
+
 class LakeShore331(Instrument):
     """ Represents the Lake Shore 331 Temperature Controller and provides
     a high-level interface for interacting with the instrument. Note that the
