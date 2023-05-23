@@ -131,7 +131,7 @@ class CommonBase:
         self._create_channels()
         if preprocess_reply is not None:
             warn(("Parameter `preprocess_reply` is deprecated. "
-                 "Implement it in the instrument, e.g. in `read`, instead."),
+                  "Implement it in the instrument, e.g. in `read`, instead."),
                  FutureWarning)
         self.preprocess_reply = preprocess_reply
         super().__init__(**kwargs)
@@ -160,11 +160,13 @@ class CommonBase:
         :param id: Single value or tuple/list of ids of the children.
         :param prefix: Collection prefix for the attributes, e.g. `"ch_"`
             creates attribute `self.ch_A`. If prefix evaluates False,
-            the child will be added directly under the variable name.
+            the child will be added directly under the variable name. Required for lists of id.
+        :param: docstring: Docstring for the channel. Required for singular channels.
         :param \\**kwargs: Keyword arguments for all children.
         """
 
-        def __init__(self, cls, id=None, prefix="ch_", **kwargs):
+        def __init__(self, cls, id=None, docstring="", prefix="ch_", **kwargs):
+            self.factory = True
             try:
                 valid_class = issubclass(cls, CommonBase)
             except TypeError:
@@ -176,10 +178,15 @@ class CommonBase:
                 self.pairs = list(zip((cls,) * len(id), id))
             elif (isinstance(id, (str, int)) or id is None) and valid_class:
                 self.pairs = ((cls, id),)
+                self.factory = False
             else:
                 raise ValueError("Invalid definition of classes '{cls}' and ids '{id}'.")
             kwargs.setdefault("prefix", prefix)
             self.kwargs = kwargs
+            self.__doc__ = docstring
+
+        def __repr__(self):
+            return self.__doc__
 
     def _setup_special_names(self):
         """ Return list of class/instance special names.
@@ -201,13 +208,26 @@ class CommonBase:
                 setattr(self, self.__reserved_prefix + attr, value)
         return special_names
 
+    @staticmethod
+    def get_channels(cls):
+        # Get the members of passed in class
+        class_members = getmembers(cls)
+
+        channels = []
+        for name, member in class_members:
+            if isinstance(member, CommonBase.ChannelCreator):
+                channels.append((name, member))
+        return channels
+
     def _create_channels(self):
         """Create channels according to the ChannelCreator objects."""
-        for name, creator in getmembers(self.__class__):
-            if isinstance(creator, CommonBase.ChannelCreator):
-                for cls, id in creator.pairs:
-                    child = self.add_child(cls, id, collection=name, **creator.kwargs)
-                    child._protected = True
+        for name, creator in CommonBase.get_channels(self.__class__):
+            for cls, id in creator.pairs:
+                if creator.factory:
+                    child = self.add_child(cls, id, **creator.kwargs)
+                else:
+                    child = self.add_child(cls, id, name=name, **creator.kwargs)
+                child._protected = True
 
     def __setattr__(self, name, value):
         """ Add reserved_prefix in front of special variables."""
@@ -228,7 +248,7 @@ class CommonBase:
         return super().__getattribute__(name)
 
     # Channel management
-    def add_child(self, cls, id=None, collection="channels", prefix="ch_", **kwargs):
+    def add_child(self, cls, id=None, name="", collection="channels", prefix="ch_", **kwargs):
         """Add a child to this instance and return its index in the children list.
 
         The newly created child may be accessed either by the id in the
@@ -244,6 +264,7 @@ class CommonBase:
 
         :param cls: Class of the channel.
         :param id: Child id how it is used in communication, e.g. `"A"`.
+        :param name: Child name for the Channel class
         :param collection: Name of the collection of children, used for the dictionary.
         :param prefix: Collection prefix for the attributes, e.g. `"ch_"`
             creates attribute `self.ch_A`. If prefix evaluates False,
@@ -251,18 +272,23 @@ class CommonBase:
         :param \\**kwargs: Keyword arguments for the channel creator.
         :returns: Instance of the created child.
         """
+
         child = cls(self, id, **kwargs)
         collection_data = getattr(self, collection, {})
         if isinstance(collection_data, CommonBase.ChannelCreator):
             collection_data = {}
-        if prefix:
+        if prefix or name:
             if not collection_data:
                 # Add a grouplist to the parent.
                 setattr(self, collection, collection_data)
             collection_data[id] = child
             child._collection = collection
-            setattr(self, f"{prefix}{id}", child)
-            child._name = f"{prefix}{id}"
+            if name:
+                setattr(self, name, child)
+                child._name = name
+            else:
+                setattr(self, f"{prefix}{id}", child)
+                child._name = f"{prefix}{id}"
         else:
             if collection_data:
                 raise ValueError(f"An attribute '{collection}' already exists.")
@@ -353,24 +379,24 @@ class CommonBase:
     # Property creators
     @staticmethod
     def control(  # noqa: C901 accept that this is a complex method
-        get_command,
-        set_command,
-        docs,
-        validator=lambda v, vs: v,
-        values=(),
-        map_values=False,
-        get_process=lambda v: v,
-        set_process=lambda v: v,
-        command_process=None,
-        check_set_errors=False,
-        check_get_errors=False,
-        dynamic=False,
-        preprocess_reply=None,
-        separator=',',
-        maxsplit=-1,
-        cast=float,
-        values_kwargs=None,
-        **kwargs
+            get_command,
+            set_command,
+            docs,
+            validator=lambda v, vs: v,
+            values=(),
+            map_values=False,
+            get_process=lambda v: v,
+            set_process=lambda v: v,
+            command_process=None,
+            check_set_errors=False,
+            check_get_errors=False,
+            dynamic=False,
+            preprocess_reply=None,
+            separator=',',
+            maxsplit=-1,
+            cast=float,
+            values_kwargs=None,
+            **kwargs
     ):
         """Return a property for the class based on the supplied
         commands. This property may be set and read from the
