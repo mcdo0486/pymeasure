@@ -201,39 +201,39 @@ class ManagedConsole(QtCore.QCoreApplication):
         self.manager.log.connect(self.log.handle)
 
         # Parse command line arguments
-        self.args = vars(self.parser.parse_args())
-        if tqdm and not self.args['no_progressbar']:
+        args = vars(self.parser.parse_args())
+        if tqdm and not args['no_progressbar']:
             self.bar = tqdm(total=100)
         else:
             self.bar = None
 
-        self.directory = self.args['result_directory']
-        self.filename = self.args['result_file']
+        self.directory = args['result_directory']
+        self.filename = args['result_file']
         try:
-            log_level = int(self.args['log_level'])
+            log_level = int(args['log_level'])
         except ValueError:
             # Ignore and assume it is a valid level string
-            log_level = self.args['log_level']
+            log_level = args['log_level']
         self.log_level = log_level
         log.setLevel(self.log_level)
         self.log.setLevel(self.log_level)
 
-        if self.args['sequence_file'] is not None:
+        if args['sequence_file'] is not None:
             raise NotImplementedError("Sequencer not yet implemented")
 
         # Set procedure parameters
         parameter_values = {}
 
-        if self.args['use_result_file'] is not None:
+        if args['use_result_file'] is not None:
             # Special case set parameters from log file
-            results = Results.load(self.args['use_result_file'])
+            results = Results.load(args['use_result_file'])
             for name in results.parameters:
                 parameter_values[name] = results.parameters[name].value
         else:
-            for name in self.args:
+            for name in args:
                 opt_name = name.replace("_", "-")
                 if not (opt_name in self.parser.special_options):
-                    parameter_values[name] = self.args[name]
+                    parameter_values[name] = args[name]
 
         # Handle Ctrl+C nicely
         signal.signal(signal.SIGINT, lambda sig, _: self.abort())

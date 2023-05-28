@@ -35,6 +35,10 @@ log.addHandler(logging.NullHandler())
 
 
 class BaseBrowserItem(object):
+    """ Base class for an experiment's browser item. BaseBrowerItem outlines core functionality
+    for displaying progress of an experiment to the user.
+    """
+
     status_label = {
         Procedure.QUEUED: 'Queued', Procedure.RUNNING: 'Running',
         Procedure.FAILED: 'Failed', Procedure.ABORTED: 'Aborted',

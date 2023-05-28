@@ -30,7 +30,7 @@ log.addHandler(logging.NullHandler())
 
 
 class TestProcedure(Procedure):
-    iterations = IntegerParameter('Loop Iterations', default=10)
+    iterations = IntegerParameter('Loop Iterations', default=100)
     delay = FloatParameter('Delay Time', units='s', default=0.2)
     seed = Parameter('Random Seed', default='12345')
 
