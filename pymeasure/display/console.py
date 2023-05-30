@@ -29,9 +29,12 @@ import copy
 import argparse
 
 try:
-    from tqdm import tqdm
+    import progressbar
+
+    # Check that progressbar is progressbar2
+    progressbar.streams
 except (AttributeError, ImportError):
-    tqdm = None
+    progressbar = None
 from .Qt import QtCore
 import signal
 from ..log import console_log
@@ -52,12 +55,11 @@ class ConsoleBrowserItem(BaseBrowserItem):
 
     def setStatus(self, status):
         if self.bar:
-            self.bar.set_description(self.status_label[status])
+            self.bar.update(status=self.status_label[status])
 
     def setProgress(self, status):
         if self.bar:
-            self.bar.n = status
-            self.bar.refresh()
+            self.bar.update(status)
 
 
 class ConsoleArgumentParser(argparse.ArgumentParser):
@@ -167,28 +169,34 @@ class ManagedConsole(QtCore.QCoreApplication):
     def __init__(self,
                  procedure_class,
                  log_channel='',
-                 log_level=logging.INFO,
-                 sequence_file=None,
-                 directory_input=False,
+                 sequence_file=None
                  ):
 
         super().__init__([])
         self.procedure_class = procedure_class
         self.sequence_file = sequence_file
-        self.directory_input = directory_input
-        self.log = logging.getLogger(log_channel)
-        self.log_level = log_level
-        log.setLevel(log_level)
-        self.log.setLevel(log_level)
-
-        scribe = console_log(self.log, level=self.log_level)
-        scribe.start()
 
         # Check if the get_estimates function is reimplemented
         self.use_estimator = not self.procedure_class.get_estimates == Procedure.get_estimates
         self.parser = ConsoleArgumentParser(procedure_class)
         if self.use_estimator:
             log.warning("Estimator not yet implemented")
+
+        # Parse command line arguments
+        args = vars(self.parser.parse_args())
+
+        self.log = logging.getLogger(log_channel)
+        try:
+            log_level = int(args['log_level'])
+        except ValueError:
+            # Ignore and assume it is a valid level string
+            log_level = args['log_level']
+        self.log_level = log_level
+        log.setLevel(self.log_level)
+        self.log.setLevel(self.log_level)
+
+        scribe = console_log(self.log, level=self.log_level)
+        scribe.start()
 
         # Setup Manager
         self.manager = BaseManager(
@@ -200,10 +208,11 @@ class ManagedConsole(QtCore.QCoreApplication):
         self.manager.finished.connect(self.finished)
         self.manager.log.connect(self.log.handle)
 
-        # Parse command line arguments
-        args = vars(self.parser.parse_args())
-        if tqdm and not args['no_progressbar']:
-            self.bar = tqdm(total=100)
+        if progressbar and not args['no_progressbar']:
+            progressbar.streams.wrap_stderr()
+            self.bar = progressbar.ProgressBar(max_value=100,
+                                               prefix='{variables.status}: ',
+                                               variables={'status': "Unknown"})
         else:
             self.bar = None
 
@@ -269,9 +278,8 @@ class ManagedConsole(QtCore.QCoreApplication):
             log.debug("Monitor has cleaned up after the Worker")
             if self.bar:
                 if progress:
-                    self.bar.n = progress
-                    self.bar.refresh()
-                self.bar.close()
+                    self.bar.update(progress)
+                self.bar.finish()
             self.quit()
 
     def abort(self):
