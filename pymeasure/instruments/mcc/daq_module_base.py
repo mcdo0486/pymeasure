@@ -29,7 +29,7 @@
 from pymeasure.instruments import Instrument
 import logging
 
-from pymeasure.instruments.validators import strict_discrete_set
+from pymeasure.instruments.validators import strict_discrete_set, strict_range
 
 # =============================================================================
 # Logging
@@ -286,6 +286,22 @@ class DAQModule(Instrument):
         self.check_get_errors(output)
         value = float(self.format_output(output))
         return value
+
+    def set_cjc_offset(self, offset):
+        """Set the cold junction compensation (CJC) temperature offset.
+
+        Method returns the cold junction compensation (CJC) temperature as a
+        floating point number in Celsius.
+        :param offset: Offset temperature (float)
+        :return: CJC temperature
+        :rtype: float
+        """
+        # Validate the offset
+        offset = strict_range(offset, [-40.96, 40.96])
+        offset = round(offset * 100)
+        float_hex = '{:+05X}'.format(offset)
+        output = self.ask("$" + self.address + "9" + float_hex)
+        self.check_get_errors(output)
 
     def read_channel_status(self):
         """Read what channels are enabled or disabled.
