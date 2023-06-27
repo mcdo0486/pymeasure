@@ -47,7 +47,6 @@ class ManagedOverlayWindow(ManagedWindowBase):
 
     def __init__(self, procedure_class, boxes=None, image=None,
                  log_fmt=None, log_datefmt=None, **kwargs):
-
         measure_quantities = procedure_class.DATA_COLUMNS
 
         self.log_widget = LogWidget("Experiment Log", fmt=log_fmt, datefmt=log_datefmt)
@@ -55,7 +54,7 @@ class ManagedOverlayWindow(ManagedWindowBase):
 
         if "widget_list" not in kwargs:
             kwargs["widget_list"] = ()
-        kwargs["widget_list"] = kwargs["widget_list"] + (self.overlay_widget, self.log_widget)
+        kwargs["widget_list"] = (self.overlay_widget,) + kwargs["widget_list"] + (self.log_widget,)
 
         super().__init__(procedure_class, **kwargs)
 

@@ -32,7 +32,6 @@ from ...experiment import Procedure
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
-import random
 
 
 class ResultsBox:
@@ -55,7 +54,8 @@ class ResultsBox:
         if self.force_reload:
             self.results.reload()
         data = self.results.data  # get the current snapshot
-        if data.size: self.label.setText("%g" % data[self.column].iloc[-1])
+        if data.size:
+            self.label.setText("%g" % data[self.column].iloc[-1])
 
 
 class OverlayWidget(TabWidget, QtWidgets.QWidget):
@@ -84,6 +84,7 @@ class OverlayWidget(TabWidget, QtWidgets.QWidget):
         label = QtWidgets.QLabel(self)
         label.setPixmap(pixmap)
         label.resize(pixmap.width(), pixmap.height())
+        label.setAlignment(QtCore.Qt.AlignTop)
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(0)
