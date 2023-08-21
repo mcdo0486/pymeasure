@@ -63,7 +63,8 @@ class MultiPlotWidget(TabWidget, QtWidgets.QWidget):
         )
         self.updated = self.plot_frame.updated
         self.plot = self.plot_frame.plot
-        self.plot.addLegend(frame=True)
+        self.plot.addLegend(pen=pg.mkPen(color='black', width=self.linewidth),
+                            brush=pg.mkBrush((255, 255, 255, 255)))
 
     def _layout(self):
         vbox = QtWidgets.QVBoxLayout(self)
@@ -87,7 +88,7 @@ class MultiPlotWidget(TabWidget, QtWidgets.QWidget):
             kwargs['antialias'] = False
         curves = []
         cols = self.columns[:self.limit]
-        pens = [pg.mkPen(color=pg.intColor(i, hues=len(cols)+1), width=self.linewidth) for i in
+        pens = [pg.mkPen(color=pg.intColor(i, hues=len(cols) + 1), width=self.linewidth) for i in
                 range(len(cols))]
         for cdx, c in enumerate(cols):
             if c != self.x_axis:

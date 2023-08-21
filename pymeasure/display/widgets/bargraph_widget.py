@@ -41,8 +41,8 @@ class BarResultsCurve(pg.BarGraphItem):
     """
 
     def __init__(self, results, x, height=None, columns=None, force_reload=False, wdg=None,
-                 width=0.5, **kwargs):
-        super().__init__(x=x, height=height, width=width)
+                 width=0.5, brushes=None, **kwargs):
+        super().__init__(x=x, height=height, width=width, brushes=brushes)
         self.x = x
         self.height = height
         self.width = width
@@ -87,8 +87,10 @@ class BarFrame(PlotFrame):
             if isinstance(item, self.ResultsClass):
                 self.plot.clear()
                 item.update_data()
+                brushes = [pg.mkBrush(color=pg.intColor(i, hues=len(item.columns) + 1)) for i in
+                           range(len(item.columns))]
                 self.plot.addItem(BarResultsCurve(item.results, x=item.x, height=item.height,
-                                                  columns=item.columns))
+                                                  columns=item.columns, brushes=brushes))
                 break
 
 
@@ -154,7 +156,11 @@ class BarGraphWidget(TabWidget, QtWidgets.QWidget):
                                 wdg=self,
                                 x=range(1, len(cols) + 1),
                                 height=[0] * len(cols),
-                                columns=cols)
+                                columns=cols,
+                                brushes=[pg.mkBrush(color=pg.intColor(i, hues=len(cols) + 1),
+                                                    width=self.linewidth) for i in
+                                         range(len(cols))],
+                                )
         return curve
 
     def update_x_column(self, index):
