@@ -28,13 +28,10 @@ import pyqtgraph as pg
 
 from ..Qt import QtCore, QtWidgets
 from .tab_widget import TabWidget
-from ..curves import ResultsCurve
 from .plot_frame import PlotFrame
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
-
-import numpy as np
 
 
 class BarResultsCurve(pg.BarGraphItem):
@@ -62,11 +59,8 @@ class BarResultsCurve(pg.BarGraphItem):
             self.results.reload()
         data = self.results.data  # get the current snapshot
 
-        if data.size: self.height = [data[i].iloc[-1] for i in self.columns]
-
-        # Set x-y data
-        # if data.size:
-        #    self.height = [data[self.y_column].iloc[-1]]
+        if data.size:
+            self.height = [data[i].iloc[-1] for i in self.columns]
 
     def set_color(self, color):
         self.pen.setColor(color)
@@ -75,6 +69,18 @@ class BarResultsCurve(pg.BarGraphItem):
 
 class BarFrame(PlotFrame):
     ResultsClass = BarResultsCurve
+
+    def __init__(self, x_axis=None, y_axis=None, refresh_time=0.2, check_status=True, labels=None,
+                 parent=None):
+        super().__init__(x_axis, y_axis, refresh_time, check_status, parent)
+        self.refresh_time = refresh_time
+        self.check_status = check_status
+
+        if labels:
+            self.plot.setLabel('left', labels['left']['label'], units=labels['left']['units'],
+                               **self.LABEL_STYLE)
+            self.plot.setLabel('bottom', labels['bottom']['label'], units=labels['bottom']['units'],
+                               **self.LABEL_STYLE)
 
     def update_curves(self):
         for item in self.plot.items:
@@ -91,8 +97,8 @@ class BarGraphWidget(TabWidget, QtWidgets.QWidget):
     to allow different columns of the data to be dynamically chosen
     """
 
-    def __init__(self, name, columns, x_axis, limit=None, refresh_time=0.2,
-                 check_status=True, linewidth=1, parent=None, **kwargs):
+    def __init__(self, name, columns, x_axis, x_axis_label=None, limit=None, refresh_time=0.2,
+                 check_status=True, linewidth=1, parent=None, labels=None, **kwargs):
         super().__init__(name, parent)
         self.columns = columns
         self.refresh_time = refresh_time
@@ -100,6 +106,7 @@ class BarGraphWidget(TabWidget, QtWidgets.QWidget):
         self.linewidth = linewidth
         self.x_axis = x_axis
         self.limit = limit
+        self.labels = labels
         self._setup_ui()
         self._layout()
 
@@ -110,6 +117,7 @@ class BarGraphWidget(TabWidget, QtWidgets.QWidget):
             None,
             self.refresh_time,
             self.check_status,
+            labels=self.labels,
             parent=self,
         )
         self.updated = self.plot_frame.updated
@@ -144,7 +152,7 @@ class BarGraphWidget(TabWidget, QtWidgets.QWidget):
                 cols.append(c)
         curve = BarResultsCurve(results,
                                 wdg=self,
-                                x=range(len(cols)),
+                                x=range(1, len(cols) + 1),
                                 height=[0] * len(cols),
                                 columns=cols)
         return curve

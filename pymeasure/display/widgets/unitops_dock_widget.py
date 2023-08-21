@@ -31,7 +31,7 @@ from pyqtgraph.dockarea.Dock import DockLabel
 import pyqtgraph as pg
 
 from .multiplot_widget import MultiPlotWidget, PlotFrame
-from .bargraph_widget import BarGraphWidget, BarFrame
+from .bargraph_widget import BarGraphWidget
 from ..Qt import QtWidgets
 from .tab_widget import TabWidget
 
@@ -63,11 +63,16 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
                  layout_path='./', layout_filename='', parent=None):
         super().__init__(name, parent)
 
+        labels = {'left': {'label': 'Temperature', 'units': 'C'},
+                  'bottom': {'label': 'Thermocouple', 'units': ''},
+                  }
+
         self.procedure_class = procedure_class
         self.dock_widgets = [MultiPlotWidget("Results Graph", self.procedure_class.DATA_COLUMNS,
                                              self.procedure_class.DATA_COLUMNS[0], limit=13),
                              BarGraphWidget("Bar Graph", self.procedure_class.DATA_COLUMNS,
-                                            self.procedure_class.DATA_COLUMNS[0], limit=13),
+                                            self.procedure_class.DATA_COLUMNS[0], limit=13,
+                                            labels=labels),
 
                              ]
         if layout_filename:

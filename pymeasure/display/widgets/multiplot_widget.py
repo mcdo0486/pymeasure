@@ -86,13 +86,16 @@ class MultiPlotWidget(TabWidget, QtWidgets.QWidget):
         if 'antialias' not in kwargs:
             kwargs['antialias'] = False
         curves = []
-        for cdx, c in enumerate(self.columns[:self.limit]):
+        cols = self.columns[:self.limit]
+        pens = [pg.mkPen(color=pg.intColor(i, hues=len(cols)+1), width=self.linewidth) for i in
+                range(len(cols))]
+        for cdx, c in enumerate(cols):
             if c != self.x_axis:
                 curve = ResultsCurve(results,
                                      wdg=self,
                                      x=self.x_axis,
                                      y=c,
-                                     pen=pg.mkPen(color=pg.intColor(cdx), width=self.linewidth),
+                                     pen=pens[cdx],
                                      name=c
                                      )
                 curve.setSymbol(None)

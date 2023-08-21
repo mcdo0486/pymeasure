@@ -26,6 +26,8 @@ import logging
 
 from ..widgets.unitops_dock_widget import DockWidget
 from ..widgets.log_widget import LogWidget
+from ..widgets.overlay_widget import OverlayWidget
+
 from .managed_window import ManagedWindowBase
 
 log = logging.getLogger(__name__)
@@ -51,7 +53,7 @@ class ManagedDockWindow(ManagedWindowBase):
         :class:`~pymeasure.display.windows.managed_window.ManagedWindowBase`
     """
 
-    def __init__(self, procedure_class, x_axis=None, y_axis=None,
+    def __init__(self, procedure_class, x_axis=None, y_axis=None, boxes=None, image=None,
                  log_fmt=None, log_datefmt=None, **kwargs):
 
         self.x_axis = x_axis
@@ -78,14 +80,15 @@ class ManagedDockWindow(ManagedWindowBase):
             self.y_axis_labels = [self.y_axis, ]
             measure_quantities.append(self.y_axis)
 
-
         self.log_widget = LogWidget("Experiment Log", fmt=log_fmt, datefmt=log_datefmt)
         self.dock_widget = DockWidget("Dock Tab", procedure_class, self.x_axis_labels,
                                       self.y_axis_labels)
+        self.overlay_widget = OverlayWidget("Overlay", procedure_class, boxes, image)
 
         if "widget_list" not in kwargs:
             kwargs["widget_list"] = ()
-        kwargs["widget_list"] = kwargs["widget_list"] + (self.dock_widget, self.log_widget)
+        kwargs["widget_list"] = (self.overlay_widget, self.dock_widget, self.log_widget) + kwargs[
+            "widget_list"]
 
         super().__init__(procedure_class, **kwargs)
 

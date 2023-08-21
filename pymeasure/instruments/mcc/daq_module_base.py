@@ -126,7 +126,7 @@ class DAQModule(Instrument):
         try:
             return output[1:]
             # return float(output[1:])
-        except:
+        except Exception:
             raise ValueError("Invalid command.")
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

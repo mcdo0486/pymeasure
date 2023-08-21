@@ -96,7 +96,6 @@ class OverlayWidget(TabWidget, QtWidgets.QWidget):
             self.labels[i].setReadOnly(True)
             self.labels[i].setMaxLength(5)
             self.labels[i].setFixedSize(56, 25)
-            self.labels[i].setText(i[12:])
             self.labels[i].move(self.boxes[i][0], self.boxes[i][1])
 
         self.setLayout(vbox)
