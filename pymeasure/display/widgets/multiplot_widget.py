@@ -39,8 +39,9 @@ class MultiPlotWidget(TabWidget, QtWidgets.QWidget):
     """ Extends :class:`PlotFrame<pymeasure.display.widgets.plot_frame.PlotFrame>`
     to allow different columns of the data to be dynamically chosen
     """
+    LABEL_STYLE = {'font-size': '16pt', 'font-family': 'Arial', 'color': '#000000'}
 
-    def __init__(self, name, columns, x_axis, limit=None, refresh_time=0.2,
+    def __init__(self, name, columns, x_axis, labels=None, limit=None, refresh_time=0.2,
                  check_status=True, linewidth=1, parent=None, **kwargs):
         super().__init__(name, parent)
         self.columns = columns
@@ -49,6 +50,7 @@ class MultiPlotWidget(TabWidget, QtWidgets.QWidget):
         self.linewidth = linewidth
         self.x_axis = x_axis
         self.limit = limit
+        self.labels = labels
         self._setup_ui()
         self._layout()
 
@@ -64,13 +66,19 @@ class MultiPlotWidget(TabWidget, QtWidgets.QWidget):
         self.updated = self.plot_frame.updated
         self.plot = self.plot_frame.plot
         self.plot.addLegend(pen=pg.mkPen(color='black', width=self.linewidth),
-                            brush=pg.mkBrush((255, 255, 255, 255)))
+                            brush=pg.mkBrush((255, 255, 255, 255)),
+                            labelTextColor='black')
         self.plot.getAxis('left').setTextPen('black')
         self.plot.getAxis('bottom').setTextPen('black')
         font = QtGui.QFont()
         font.setPixelSize(20)
         self.plot.getAxis("bottom").setStyle(tickFont=font)
         self.plot.getAxis("left").setStyle(tickFont=font)
+        self.plot.setLabel('bottom', self.labels['bottom']['label'],
+                           units=self.labels['bottom']['units'],
+                           **self.LABEL_STYLE)
+        self.plot.setLabel('left', self.labels['left']['label'], units=self.labels['left']['units'],
+                           **self.LABEL_STYLE)
 
     def _layout(self):
         vbox = QtWidgets.QVBoxLayout(self)

@@ -63,16 +63,20 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
                  layout_path='./', layout_filename='', parent=None):
         super().__init__(name, parent)
 
-        labels = {'left': {'label': 'Temperature', 'units': 'C'},
-                  'bottom': {'label': 'Thermocouple', 'units': ''},
-                  }
+        bar_labels = {'left': {'label': 'Temperature', 'units': 'C'},
+                      'bottom': {'label': 'Thermocouple', 'units': ''},
+                      }
+        multi_labels = {'left': {'label': 'Temperature', 'units': 'C'},
+                        'bottom': {'label': 'Time', 'units': 'minutes'},
+                        }
 
         self.procedure_class = procedure_class
         self.dock_widgets = [MultiPlotWidget("Results Graph", self.procedure_class.DATA_COLUMNS,
-                                             self.procedure_class.DATA_COLUMNS[0], limit=13),
+                                             self.procedure_class.DATA_COLUMNS[0], limit=13,
+                                             labels=multi_labels),
                              BarGraphWidget("Bar Graph", self.procedure_class.DATA_COLUMNS,
                                             self.procedure_class.DATA_COLUMNS[0], limit=14,
-                                            labels=labels),
+                                            labels=bar_labels),
 
                              ]
         if layout_filename:
