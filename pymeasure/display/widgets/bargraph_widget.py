@@ -26,7 +26,7 @@ import logging
 
 import pyqtgraph as pg
 
-from ..Qt import QtCore, QtWidgets
+from ..Qt import QtCore, QtWidgets, QtGui
 from .tab_widget import TabWidget
 from .plot_frame import PlotFrame
 
@@ -69,6 +69,8 @@ class BarResultsCurve(pg.BarGraphItem):
 
 class BarFrame(PlotFrame):
     ResultsClass = BarResultsCurve
+    LABEL_STYLE = {'font-size': '16pt', 'font-family': 'Arial', 'color': '#000000'}
+
 
     def __init__(self, x_axis=None, y_axis=None, refresh_time=0.2, check_status=True, labels=None,
                  parent=None):
@@ -125,6 +127,12 @@ class BarGraphWidget(TabWidget, QtWidgets.QWidget):
         self.updated = self.plot_frame.updated
         self.plot = self.plot_frame.plot
         self.plot.addLegend(frame=True)
+        self.plot.getAxis('left').setTextPen('black')
+        self.plot.getAxis('bottom').setTextPen('black')
+        font = QtGui.QFont()
+        font.setPixelSize(20)
+        self.plot.getAxis("bottom").setStyle(tickFont=font)
+        self.plot.getAxis("left").setStyle(tickFont=font)
 
     def _layout(self):
         vbox = QtWidgets.QVBoxLayout(self)

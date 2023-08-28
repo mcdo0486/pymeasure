@@ -71,7 +71,7 @@ class DockWidget(TabWidget, QtWidgets.QWidget):
         self.dock_widgets = [MultiPlotWidget("Results Graph", self.procedure_class.DATA_COLUMNS,
                                              self.procedure_class.DATA_COLUMNS[0], limit=13),
                              BarGraphWidget("Bar Graph", self.procedure_class.DATA_COLUMNS,
-                                            self.procedure_class.DATA_COLUMNS[0], limit=13,
+                                            self.procedure_class.DATA_COLUMNS[0], limit=14,
                                             labels=labels),
 
                              ]

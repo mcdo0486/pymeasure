@@ -26,7 +26,7 @@ import logging
 
 import pyqtgraph as pg
 
-from ..Qt import QtCore, QtWidgets
+from ..Qt import QtCore, QtWidgets, QtGui
 from .tab_widget import TabWidget
 from ..curves import ResultsCurve
 from .plot_frame import PlotFrame
@@ -65,6 +65,12 @@ class MultiPlotWidget(TabWidget, QtWidgets.QWidget):
         self.plot = self.plot_frame.plot
         self.plot.addLegend(pen=pg.mkPen(color='black', width=self.linewidth),
                             brush=pg.mkBrush((255, 255, 255, 255)))
+        self.plot.getAxis('left').setTextPen('black')
+        self.plot.getAxis('bottom').setTextPen('black')
+        font = QtGui.QFont()
+        font.setPixelSize(20)
+        self.plot.getAxis("bottom").setStyle(tickFont=font)
+        self.plot.getAxis("left").setStyle(tickFont=font)
 
     def _layout(self):
         vbox = QtWidgets.QVBoxLayout(self)
