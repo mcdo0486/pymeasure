@@ -21,6 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import struct
+import numpy as np
 
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import strict_range, strict_discrete_range, \
@@ -37,13 +39,12 @@ class RGA100(Instrument):
             adapter,
             name,
             includeSCPI=False,
-            #asrl={'baud_rate': 28800, 'write_termination': '\n\r', 'read_termination': '\n\r'},
             asrl={'baud_rate': 28800, 'write_termination': '\r', 'read_termination': '\n\r'},
             **kwargs
         )
 
     def error_checking(self):
-        error = int(self.ask('ER?'))
+        # error = int(self.ask('ER?'))
         # 0: com - EC?
         # 1: filament - EF?
         # 2: not used
@@ -51,13 +52,14 @@ class RGA100(Instrument):
         # 4: quad mass filter - EQ?
         # 5: electrometer - ED?
         # 6: 24 V psu - EP?
-        dev_error_map = {0: 'EC?'}
+        # dev_error_map = {0: 'EC?'}
+        return []
 
     def check_get_errors(self):
-        pass
+        return []
 
     def check_set_errors(self):
-        pass
+        return []
 
     id = Instrument.measurement(
         "ID?",
@@ -78,6 +80,7 @@ class RGA100(Instrument):
         """Get the total number of ion currents that will be measured and transmitted during an
         analog scan.""",
         check_get_errors=True,
+        cast=int
     )
 
     histogram_points = Instrument.measurement(
@@ -107,13 +110,13 @@ class RGA100(Instrument):
     )
 
     filament_emission = Instrument.control(
-        "FL?", "FL%.4f",
+        "FL?", "FL%.2f",
         """Control the filament electron emission current of the instrument. The heater is activated
          until current is achieved. The units are in milliamps (mA).""",
         validator=strict_range,
         values=(0.02, 3.5),
-        check_set_errors=True,
-        check_get_errors=True,
+        # check_set_errors=True,
+        # check_get_errors=True,
     )
 
     ion_energy = Instrument.control(
@@ -130,7 +133,7 @@ class RGA100(Instrument):
 
     focus_voltage = Instrument.control(
         "VF?", "VF%d",
-        """Control the focus plate voltage of the instrument. The units are in volts (V).
+        """Control th   e focus plate voltage of the instrument. The units are in volts (V).
         The value represents the magnitude of the biasing voltage (negative).""",
         validator=lambda v, vs: strict_discrete_range(v, vs, 1),
         values=(0, 155),
@@ -220,7 +223,7 @@ class RGA100(Instrument):
     )
 
     stored_multiplier_bias = Instrument.control(
-        "MV", "MV%d",
+        "MV?", "MV%d",
         """Set the value of electron multiplier (CDEM) Gain, expressed in units of
         thousands, in the non-volatile memory of the RGA head.""",
         validator=lambda v, vs: strict_discrete_range(v, vs, 1),
@@ -283,7 +286,7 @@ class RGA100(Instrument):
     # HISTOGRAM SCANNING
     def trigger_histogram_continuous(self):
         """Execute one or multiple Histogram Scans under the present scan conditions.
-        The scan parameter can be set for single, multiple and continuous scanning
+        The scan parameter can be set for single, ie and continuous scanning
         operation."""
         self.write('HS')
 
@@ -295,7 +298,7 @@ class RGA100(Instrument):
         if isinstance(scan_count, int) and 1 <= scan_count <= 255:
             self.write('HS%d' % scan_count)
 
-    # ANALOG SCANNING
+    # HISTOGRAM SCANNING
     def interrupt_histogram_scan(self):
         self.write('HS0')
 
@@ -313,6 +316,24 @@ class RGA100(Instrument):
         operation."""
         if isinstance(scan_count, int) and 1 <= scan_count <= 255:
             self.write('SC%d' % scan_count)
+
+    def analog_scan(self):
+        scale_factor = 1e-13 / self.stored_partial_pressure
+        step = 1.0 / self.analog_scan_steps
+        points = self.analog_points
+        # scan count 1-255
+        self.trigger_analog_scan(1)
+        data = []
+        for i in range(points):
+            # read integer
+            point = struct.unpack('<i', self.read_bytes(4))[0]
+            data.append(point * scale_factor)
+
+        mass_axis = np.arange(self.initial_mass_spectra, self.final_mass_spectra + step / 2.0, step)
+        return [data, mass_axis]
+
+    def mass_count(self, data):
+        pass
 
     # ANALOG SCANNING
     def interrupt_analog_scan(self):
@@ -343,6 +364,9 @@ class RGA100(Instrument):
         ECU’s hardware and sends back the STATUS Byte. Check the value of the STATUS
         byte for potential errors."""
         self.write('IN0')
+        e = self.read_bytes(1)
+        print('STATUS', e)
+        return e
 
     def factory_reset(self):
         """Reset the RGA to its factory default settings.
